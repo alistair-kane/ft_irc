@@ -14,12 +14,12 @@ int main(int argc, char **argv)
 {
 	if (argc != 3)
 	{
-		std::cout << "Invalid number of arguments!\n <port> <password>\n";
+		std::cout << "Invalid number of arguments!\n Please privde a <port> and a <password>\n";
 		exit(-1);
 	}
 	if (isInt(argv[1]) == false)
 	{
-		std::cout << "Invalid port as first argument!\n 1024 - 65535\n";
+		std::cout << "Invalid port as first argument!\n Please use a port in the range of 1024 - 65535\n";
 		exit(-1);
 	}
 

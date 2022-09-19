@@ -54,16 +54,16 @@ class Server
 		// need to create channel class?
 		// std::map<std::string, Channel>	channel_list;
 		struct pollfd			clients[64];
-		int						server_socket;
-		struct sockaddr_in		client;
-		socklen_t				client_number;
+		int						sockfd;
+		struct sockaddr_storage	client_addr;
+		socklen_t				client_addr_len;
 		int						clients_size;
 
 		void					collect_messages(void);
 		void					update_pollfd(void);
 		int						get_client_fd(std::string const & nickname);
 		void					add_new_client(int const & fd);
-		void					remove_client(int const & fd);		
+		void					remove_client(int const & fd);
 		void					store_message(int const & fd, char const * input);
 		void					remove_message(int const & fd);
 

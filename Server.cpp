@@ -21,41 +21,38 @@ void    Server::init_server(void)
     _server_address.sin_family = AF_INET;
     _server_address.sin_addr.s_addr = INADDR_ANY;
     _server_address.sin_port = htons(_port);
-    server_socket = socket(_server_address.sin_family, SOCK_STREAM, 0);
-    client_number = sizeof(client);
-    std::cout << "Socket = [" << server_socket << "[" << std::endl;
+    sockfd = socket(_server_address.sin_family, SOCK_STREAM, 0);
+    client_addr_len = sizeof(client_addr);
+    std::cout << "Socket = [" << sockfd << "[" << std::endl;
 
-    int return_bind = bind(server_socket, (struct sockaddr *) &_server_address, sizeof(_server_address));
-    std::cout << "Bind = [" << return_bind << "]" << std::endl;
-    if (return_bind < 0)
+    if (bind(sockfd, (struct sockaddr *) &_server_address, sizeof(_server_address)) < 0)
     {
         std::cout << "error " << errno << "std::endl";
         exit(1);
     }
-    
-    int return_fcntl = fcntl(server_socket, F_SETFL, O_NONBLOCK);
-    std::cout << "Fcntl = [" << return_fcntl << "]" << std::endl;
 
-    int return_listen = listen(server_socket, 5);
-    std::cout << "Listen = [" << return_listen << "]" << std::endl;
+    if (listen(sockfd, 5) < 0)
+	{
+        std::cout << "error " << errno << "std::endl";
+        exit(1);
+    }
 
-    std::memset(&client, 0, sizeof(client));
+    std::memset(&client_addr, 0, sizeof(client_addr));
 }
 
 void    Server::start_server(void)
 {
-    int return_accept;
+    int client_fd;
     int return_poll;
 
     clients_size = 0;
     while (true)
     {
-        return_accept = accept(server_socket, (struct sockaddr *) &client, &client_number);
-        if (return_accept > 0)
+        client_fd = accept(sockfd, (struct sockaddr *) &client_addr, &client_addr_len);
+        if (client_fd > 0)
         {
-            std::cout << "Accept = [" << return_accept << "] client = [" << ntohs(client.sin_port) << " - "
-                << client.sin_family << std::endl;
-            add_new_client(return_accept);
+            std::cout << "Accept = [" << client_fd << "] client = [" << client_addr.ss_family << std::endl;
+            add_new_client(client_fd);
         }
         return_poll = poll(clients, clients_size, 500);
         if (return_poll > 0)
@@ -142,7 +139,7 @@ void	Server::store_message(int const & fd, char const * input)
 			start_pos = end_pos + 2;
 		}
 	} while (end_pos != std::string::npos);
-	
+
 	this->recieved_msg_list.insert(std::make_pair(fd, Message(fd, input)));
 }
 
