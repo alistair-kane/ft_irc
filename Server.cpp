@@ -22,19 +22,24 @@ void    Server::init_server(void)
     _server_address.sin_addr.s_addr = INADDR_ANY;
     _server_address.sin_port = htons(_port);
     sockfd = socket(_server_address.sin_family, SOCK_STREAM, 0);
+	if (sockfd < 0)
+	{
+		std::cout << "Error: " << errno << std::endl;
+		exit(1);
+	}
     client_addr_len = sizeof(client_addr);
     std::cout << "Socket = [" << sockfd << "[" << std::endl;
 
     if (bind(sockfd, (struct sockaddr *) &_server_address, sizeof(_server_address)) < 0)
     {
-        std::cout << "error " << errno << "std::endl";
+        std::cout << "Error: " << errno << std::endl;
         exit(1);
     }
 
     if (listen(sockfd, 5) < 0)
 	{
-        std::cout << "error " << errno << "std::endl";
-        exit(1);
+		std::cout << "Error: " << errno << std::endl;
+		exit(1);
     }
 
     std::memset(&client_addr, 0, sizeof(client_addr));
@@ -49,6 +54,11 @@ void    Server::start_server(void)
     while (true)
     {
         client_fd = accept(sockfd, (struct sockaddr *) &client_addr, &client_addr_len);
+		if (client_fd < 0)
+		{
+			std::cout << "Error: " << errno << std::endl;
+        	exit(1);
+		}
         if (client_fd > 0)
         {
             std::cout << "Accept = [" << client_fd << "] client = [" << client_addr.ss_family << std::endl;
