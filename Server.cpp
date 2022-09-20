@@ -6,154 +6,151 @@ Server::Server(Server const & copy) : _hostname(copy._hostname) {}
 
 Server & Server::operator=(Server const & assign)
 {
-    this->~Server();
-    new (this) Server(assign);
-    return (*this);
+	this->~Server();
+	new (this) Server(assign);
+	return (*this);
 }
 
 Server::~Server(void)
 {
-    std::cout << "Server cleaned up" << std::endl;
+	std::cout << "Server cleaned up" << std::endl;
 }
 
-void    Server::init_server(void)
+void    Server::init_listener(void)
 {
-    _server_address.sin_family = AF_INET;
-    _server_address.sin_addr.s_addr = INADDR_ANY;
-    _server_address.sin_port = htons(_port);
-    sockfd = socket(_server_address.sin_family, SOCK_STREAM, 0);
+	_server_address.sin_family = AF_INET;
+	_server_address.sin_addr.s_addr = INADDR_ANY;
+	_server_address.sin_port = htons(_port);
+	sockfd = socket(_server_address.sin_family, SOCK_STREAM, 0);
 	if (sockfd < 0)
 	{
-		std::cout << "Error: " << errno << std::endl;
+		std::cout << "Error on socket(): " << errno << std::endl;
 		exit(1);
 	}
-    client_addr_len = sizeof(client_addr);
-    std::cout << "Socket = [" << sockfd << "[" << std::endl;
+	client_addr_len = sizeof(client_addr);
+	std::cout << "Socket = [" << sockfd << "]" << std::endl;
 
-    if (bind(sockfd, (struct sockaddr *) &_server_address, sizeof(_server_address)) < 0)
-    {
-        std::cout << "Error: " << errno << std::endl;
-        exit(1);
-    }
-
-    if (listen(sockfd, 5) < 0)
+	if (bind(sockfd, (struct sockaddr *) &_server_address, sizeof(_server_address)) < 0)
 	{
-		std::cout << "Error: " << errno << std::endl;
+		std::cout << "Error on bind(): " << errno << std::endl;
+		close(sockfd);
 		exit(1);
-    }
+	}
 
-    std::memset(&client_addr, 0, sizeof(client_addr));
+	if (listen(sockfd, 5) < 0)
+	{
+		std::cout << "Error on listen(): " << errno << std::endl;
+		exit(1);
+	}
+
+	std::memset(&client_addr, 0, sizeof(client_addr));
 }
 
 void    Server::start_server(void)
 {
-    int client_fd;
-    int return_poll;
+	int		new_fd;
+	char	buf[256]; // buffer for client data (cstring..?)
+	char	remote_ip[INET6_ADDRSTRLEN];
 
-    clients_size = 0;
-    while (true)
-    {
-        client_fd = accept(sockfd, (struct sockaddr *) &client_addr, &client_addr_len);
-		if (client_fd < 0)
-		{
-			std::cout << "Error: " << errno << std::endl;
-        	exit(1);
-		}
-        if (client_fd > 0)
-        {
-            std::cout << "Accept = [" << client_fd << "] client = [" << client_addr.ss_family << std::endl;
-            add_new_client(client_fd);
-        }
-        return_poll = poll(clients, clients_size, 500);
-        if (return_poll > 0)
-		{
-			std::cout << "... collect messages\n";
-			collect_messages();
-			// std::cout << "... process messages\n";
-			// process_messages();
-			// std::cout << "... distribute messages\n";
-			// distribute_messages();
-			std::cout << "... wait for new messages\n";
-		}
-        if (clients_size != static_cast<int>(client_list.size()))
-            update_pollfd();
-    }
-}
-
-void	Server::collect_messages(void)
-{
-	char buffer[1024] = {0};
-	ssize_t returnRecv = 0;
-
-	for (int i = 0; i < clients_size; ++i)
+	clients[0].fd = sockfd; // adds listening socket to first client position to loop
+	clients[0].events = POLLIN; // reports ready to read on incoming connection
+	fd_count = 1; // for the listener
+	while (true)
 	{
-		if ((clients[i].revents & POLLIN) == POLLIN)
+		if (poll(clients, fd_count, -1) < 0)
 		{
-			returnRecv = recv(clients[i].fd, buffer, 1023, 0);
-			buffer[returnRecv] = '\0';
-			//check for "\r\n" to mark end of the message otherwise append
-			if (returnRecv == 0)
+			std::cout << "Error on poll(): " << errno << std::endl;
+			exit(1);
+		}
+		for (int i = 0; i < fd_count; i++)
+		{
+			if (clients[i].revents & POLLIN) // if someone is ready to read (be read?)
 			{
-				this->remove_client(clients[i].fd);
-				close(clients[i].fd);
-				std::cout << "client disconnected\n";
-				continue;
+				if (clients[i].fd == sockfd) // if its listener, need to handle new connection
+				{
+					client_addr_len = sizeof(client_addr);
+					new_fd = accept(sockfd, (struct sockaddr *) &client_addr, &client_addr_len);
+					if (new_fd < 0)
+					{
+						std::cout << "Error on accept(): " << errno << std::endl;
+						exit(1);
+					}
+					else
+					{
+						add_new_client(new_fd, &fd_count); // original passes fd_size for realloc, we use container so don't need...?
+						std::cout << "pollserver: new connection from " 
+							<< inet_ntop(client_addr.ss_family, get_in_addr((struct sockaddr*)&client_addr), remote_ip, INET6_ADDRSTRLEN)
+							<< " on socket "
+							<< new_fd
+							<< std::endl;
+					}
+				}
 			}
-			std::cout << "recv = " << returnRecv << " from fd = " << clients[i].fd << " buffer = [" << buffer << "]\n";
-			this->store_message(clients[i].fd, buffer);
+			else // If not the listener, we're just a regular client (already accepted in previous condition)
+			{
+				int n_bytes = recv(clients[i].fd, buf, sizeof(buf), 0);
+				int sender_fd = clients[i].fd;
+
+				if (n_bytes <= 0)
+				{
+					if (n_bytes == 0) // connection is closed
+					{
+						std::cout << "pollserver: socket "
+							<< sender_fd
+							<< " hung up"
+							<< std::endl;
+					}
+					else
+					{
+						std::cout << "Error on recv(): " << errno << std::endl;
+						exit(1);
+					}
+					close(clients[i].fd);
+					remove_client(i, &fd_count);
+				}
+				else // we got something valid from a client
+				{
+					for (int j = 0; j < fd_count; j++)
+					{
+						// starts collecting destinations to send the data out
+						int dest_fd = clients[j].fd;
+
+						if (dest_fd != sockfd && dest_fd != sender_fd)
+						{
+							if (send(dest_fd, buf, n_bytes, 0) < 0)
+							{
+								std::cout << "Error on send(): " << errno << std::endl;
+								exit(1);
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }
 
-void	Server::update_pollfd(void)
+void	Server::add_new_client(int newfd, int *fd_count)
 {
-	std::map<int, Client>::iterator it = client_list.begin();
-	clients_size = static_cast<int>(client_list.size());
-	for (int i = 0; i < clients_size; ++i)
-	{
-		clients[i].fd = it->first;
-		clients[i].events = POLLIN;
-		clients[i].revents = 0;
+	// no realloc to handle more than 64 clients
+	clients[*fd_count].fd = newfd;
+	clients[*fd_count].events = POLLIN;
+	(*fd_count)++;
+}
+
+void	Server::remove_client(int i, int *fd_count)
+{
+	// Copy the one from the end over this one
+	clients[i] = clients[*fd_count - 1];
+	(*fd_count)--;
+}
+
+// Get sockaddr, IPv4 or IPv6:
+void * Server::get_in_addr(struct sockaddr *sa)
+{
+	if (sa->sa_family == AF_INET) {
+		return &(((struct sockaddr_in*)sa)->sin_addr);
 	}
-}
 
-void	Server::add_new_client(int const & fd)
-{
-	client_list.insert(std::make_pair(fd, Client(fd)));
-	//++this->clients_size;
-	//this->update_pollfd();
-}
-
-void	Server::remove_client(int const & fd)
-{
-	client_list.erase(fd);
-	//--this->clients_size;
-	//this->update_pollfd();
-}
-
-void	Server::store_message(int const & fd, char const * input)
-{
-	std::string tmp = input;
-	size_t start_pos = 0, end_pos = 0;
-	std::map<int, Client>::iterator it = client_list.find(fd);
-	do
-	{
-		end_pos = tmp.find("\r\n", start_pos);
-		if (end_pos == std::string::npos) //incomplete message
-			it->second.append_message_buffer(input);
-		else
-		{
-			it->second.append_message_buffer(tmp.substr(start_pos, end_pos));
-			received_msg_queue.push(Message(fd, it->second.get_message_buffer().c_str()));
-			it->second.clear_message_buffer();
-			start_pos = end_pos + 2;
-		}
-	} while (end_pos != std::string::npos);
-
-	this->recieved_msg_list.insert(std::make_pair(fd, Message(fd, input)));
-}
-
-void	Server::remove_message(int const & fd)
-{
-	this->recieved_msg_list.erase(fd);
+	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }

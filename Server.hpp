@@ -32,7 +32,7 @@ class Server
 		Server & operator=(Server const & assign);
 		~Server(void);
 
-		void    init_server(void);
+		void    init_listener(void);
 		void    start_server(void);
 
 	private:
@@ -57,14 +57,18 @@ class Server
 		int						sockfd;
 		struct sockaddr_storage	client_addr;
 		socklen_t				client_addr_len;
-		int						clients_size;
+		int						fd_count;
 
-		void					collect_messages(void);
-		void					update_pollfd(void);
-		int						get_client_fd(std::string const & nickname);
-		void					add_new_client(int const & fd);
-		void					remove_client(int const & fd);
-		void					store_message(int const & fd, char const * input);
-		void					remove_message(int const & fd);
+		// void					collect_messages(void);
+		// void					update_pollfd(void);
+		// int						get_client_fd(std::string const & nickname);
+		
+		void					add_new_client(int newfd, int *fd_count);
+		void					remove_client(int i, int *ft_count);
+
+		void *					get_in_addr(struct sockaddr *sa);
+
+		// void					store_message(int const & fd, char const * input);
+		// void					remove_message(int const & fd);
 
 };

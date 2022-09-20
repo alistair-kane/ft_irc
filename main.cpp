@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 {
 	if (argc != 3)
 	{
-		std::cout << "Invalid number of arguments!\n Please privde a <port> and a <password>\n";
+		std::cout << "Invalid number of arguments!\n Please provide a <port> and a <password>\n";
 		exit(-1);
 	}
 	if (isInt(argv[1]) == false)
@@ -24,6 +24,6 @@ int main(int argc, char **argv)
 	}
 
 	Server IRC_Server(std::atoi(argv[1]), argv[2]);
-	IRC_Server.init_server();
+	IRC_Server.init_listener();
 	IRC_Server.start_server();
 }
