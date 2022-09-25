@@ -26,6 +26,39 @@
 class Server
 {
 	public:
+		enum ServerCMD
+		{
+			ADMIN,
+			AWAY,
+			INVITE,
+			JOIN,
+			KICK,
+			KNOCK,
+			LINKS,
+			LIST,
+			LUSERS,
+			MAP,
+			MODE,
+			MOTD,
+			NAMES,
+			NICK,
+			NOTICE,
+			PART,
+			PASS,
+			PING,
+			PONG,
+			PRIVMSG,
+			QUIT,
+			RULES,
+			SETNAME,
+			SILENCE,
+			STATS,
+			USER,
+			VERSION,
+			WHO,
+			WHOIS,
+			WHOWAS
+		};
 
 		Server(int const & port, char const * password);
 		Server(Server const & copy);
@@ -34,6 +67,7 @@ class Server
 
 		void    init_listener(void);
 		void    start_server(void);
+		int		exec_cmds(ServerCMD cmd, char **cmd_args);
 
 	private:
 
