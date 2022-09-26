@@ -162,3 +162,70 @@ void * Server::get_in_addr(struct sockaddr *sa)
 
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
+
+int	Server::exec_cmds(ServerCMD cmd, char **cmd_args)
+{
+	switch (cmd)
+	{
+		case ADMIN:
+			// call appropriate function
+		case AWAY:
+			// call appropriate function
+		case INVITE:
+			// call appropriate function
+		case JOIN:
+			// call appropriate function
+		case KICK:
+			// call appropriate function
+		case KNOCK:
+			// call appropriate function
+		case LINKS:
+			// call appropriate function
+		case LIST:
+			// call appropriate function
+		case LUSERS:
+			// call appropriate function
+		case MAP:
+			// call appropriate function
+		case MODE:
+			// call appropriate function
+		case MOTD:
+			// call appropriate function
+		case NAMES:
+			// call appropriate function
+		case NICK:
+			// call appropriate function
+		case NOTICE:
+			// call appropriate function
+		case PART:
+			// call appropriate function
+		case PASS:
+			// call appropriate function
+		case PING:
+			// call appropriate function
+		case PONG:
+			// call appropriate function
+		case PRIVMSG:
+			// call appropriate function
+		case QUIT:
+			// call appropriate function
+		case RULES:
+			// call appropriate function
+		case SETNAME:
+			// call appropriate function
+		case SILENCE:
+			// call appropriate function
+		case STATS:
+			// call appropriate function
+		case USER:
+			// call appropriate function
+		case VERSION:
+			// call appropriate function
+		case WHO:
+			// call appropriate function
+		case WHOIS:
+			// call appropriate function
+		case WHOWAS:
+			// call appropriate function
+	}
+}
