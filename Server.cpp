@@ -57,6 +57,7 @@ void    Server::start_server(void)
 	fd_count = 1; // for the listener
 	while (true)
 	{
+		std::cout << "polling" << std::endl;
 		if (poll(clients, fd_count, -1) < 0)
 		{
 			std::cout << "Error on poll(): " << errno << std::endl;
@@ -85,42 +86,49 @@ void    Server::start_server(void)
 							<< std::endl;
 					}
 				}
-			}
-			else // If not the listener, we're just a regular client (already accepted in previous condition)
-			{
-				int n_bytes = recv(clients[i].fd, buf, sizeof(buf), 0);
-				int sender_fd = clients[i].fd;
-
-				if (n_bytes <= 0)
+				else // If not the listener, we're just a regular client (already accepted in previous condition)
 				{
-					if (n_bytes == 0) // connection is closed
-					{
-						std::cout << "pollserver: socket "
-							<< sender_fd
-							<< " hung up"
-							<< std::endl;
-					}
-					else
-					{
-						std::cout << "Error on recv(): " << errno << std::endl;
-						exit(1);
-					}
-					close(clients[i].fd);
-					remove_client(i, &fd_count);
-				}
-				else // we got something valid from a client
-				{
-					for (int j = 0; j < fd_count; j++)
-					{
-						// starts collecting destinations to send the data out
-						int dest_fd = clients[j].fd;
+					int n_bytes = recv(clients[i].fd, buf, 256 - 1, 0);
+					std::cout << "n of bytes recieved: [" << n_bytes << "]" << std::endl;
+					int sender_fd = clients[i].fd;
 
-						if (dest_fd != sockfd && dest_fd != sender_fd)
+					if (n_bytes <= 0)
+					{
+						if (n_bytes == 0) // connection is closed
 						{
-							if (send(dest_fd, buf, n_bytes, 0) < 0)
+							std::cout << "pollserver: socket "
+								<< sender_fd
+								<< " hung up"
+								<< std::endl;
+						}
+						else
+						{
+							std::cout << "Error on recv(): " << errno << std::endl;
+							exit(1);
+						}
+						close(clients[i].fd);
+						remove_client(i, &fd_count);
+					}
+					else // we got something valid from a client
+					{
+						
+						Message recieved(clients[i].fd, buf);
+						recieved.parse();
+						memset(buf, 0, sizeof(buf));
+
+						for (int j = 0; j < fd_count; j++)
+						{
+							// starts collecting destinations to send the data out
+							int dest_fd = clients[j].fd;
+
+							// if (dest_fd != sockfd && dest_fd != sender_fd)
+							if (dest_fd != sockfd) // sends message back
 							{
-								std::cout << "Error on send(): " << errno << std::endl;
-								exit(1);
+								if (send(dest_fd, buf, n_bytes, 0) < 0)
+								{
+									std::cout << "Error on send(): " << errno << std::endl;
+									exit(1);
+								}
 							}
 						}
 					}

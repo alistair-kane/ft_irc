@@ -1,12 +1,10 @@
 #include "Message.hpp"
 
-Message::Message(int const & fd, char const * input)
+Message::Message(int const & fd, char *input) : _fd(fd), _raw(input)
 {
-	this->fd = fd;
-	this->raw = input;
-	this->complete = false;
-	if (this->raw.find("\r\n") != std::string::npos)
-		this->complete = true;
+	this->_legit = false;
+	// if (this->_raw.find("\r\n") != std::string::npos)
+		// this->_legit = true;
 }
 
 Message::Message(Message const & other)
@@ -15,9 +13,10 @@ Message::Message(Message const & other)
 	this->sender = other.sender;
 	this->receiver = other.receiver;
 	this->content = other.content;
-	this->raw = other.raw;
-	this->fd = other.fd;
-	this->complete = other.complete;
+
+	this->_raw = other._raw;
+	this->_fd = other._fd;
+	this->_legit = other._legit;
 }
 
 Message const & Message::operator=(Message const & rhs)
@@ -32,34 +31,29 @@ Message::~Message(void)
 
 void	Message::parse(void)
 {
-	std::string	tmp = this->raw;
-	size_t start_pos = 0, end_pos = 0;
-	if (tmp[0] == ':')
+	char	*line;
+	char	*sgmt;
+	int		idx;
+	// std::cout << "msg to parse: " << _raw << std::endl;
+	line = strtok(_raw, "\n");
+	while (line != NULL)
 	{
-		end_pos = tmp.find(' ', 0);
-		this->prefix = tmp.substr(0, end_pos);
-		//std::cout << "prefix: " << this->prefix << "\n";
-		tmp.erase(0, end_pos + 1);
-		std::cout << "tmp: [" << tmp << "]\n";
+		std::cout << "line: " << line << std::endl;	
+		sgmt = strtok(line, " ");
+		idx = 0;
+		while (sgmt != NULL)
+		{
+			// need to do other checks etc
+			if (idx == 0)
+				this->CMD = sgmt;
+			else if (idx > 0)
+				this->arg = sgmt;
+			std::cout << "sep sgmt: " << sgmt << std::endl;
+			sgmt = strtok(NULL, " ");
+			idx++;
+		}
+		line = strtok(NULL, "\n");
 	}
-	//std::cout << "tmp: [" << tmp << "]\n";
-	//start_pos = tmp.find(' ');
-	end_pos = tmp.find(' ', 0);
-	this->CMD = tmp.substr(0, end_pos);
-	//std::cout << "CMD: " << this->CMD << "\n";
-	tmp.erase(0, end_pos + 1);
-	std::cout << "tmp: [" << tmp << "]\n";
-	start_pos = tmp.rfind(" :");
-	std::cout << "start_pos: " << start_pos << "\n";
-	if (start_pos != 0 && start_pos <= tmp.length())
-	{
-		//end_pos = raw.rfind(" ");
-		this->postfix = tmp.substr(start_pos + 1);
-		//std::cout << "postfix: " << this->postfix << "\n";
-		tmp.erase(start_pos);
-		std::cout << "tmp: [" << tmp << "]\n";
-	}
-	this->arg = tmp;
 }
 
 std::string const & Message::get_cmd(void) const
@@ -72,31 +66,31 @@ std::string const & Message::get_arg(void) const
 	return (this->arg);
 }
 
-std::string const & Message::print_message(void) const
-{
-	std::cout	<< "fd: [" << this->fd << "]\n"
-				<< "prefix: [" << this->prefix << "]\n"
-				<< "CMD: [" << this->CMD << "]\n"
-				<< "arg: [" << this->arg << "]\n"
-				<< "postfix: [" << this->postfix << "]\n";
-	//return (this->CMD + " " + this->sender + " " + this->receiver + " " + this->content + "\r\n");
-	return (this->raw);
-}
+// std::string const & Message::print_message(void) const
+// {
+// 	std::cout	<< "fd: [" << _fd << "]\n"
+// 				<< "prefix: [" << this->prefix << "]\n"
+// 				<< "CMD: [" << this->CMD << "]\n"
+// 				<< "arg: [" << this->arg << "]\n"
+// 				<< "postfix: [" << this->postfix << "]\n";
+// 	//return (this->CMD + " " + this->sender + " " + this->receiver + " " + this->content + "\r\n")
+// 	return (_raw);
+// }
 
 int const & Message::get_fd(void) const
 {
-	return (this->fd);
+	return (_fd);
 }
 
-int Message::get_len(void) const
-{
-	return (raw.length());
-}
+// int Message::get_len(void) const
+// {
+// 	return (_raw.length());
+// }
 
-char const * Message::get_raw(void) const
-{
-	return (raw.c_str());
-}
+// char const * Message::get_raw(void) const
+// {
+// 	return (_raw.c_str());
+// }
 
 std::string const & Message::get_receiver(void) const
 {

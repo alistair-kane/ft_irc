@@ -10,6 +10,9 @@
 #include <iostream>
 #include <string.h>
 
+#include <cstdio>
+#include <sstream>
+
 #include <errno.h>
 #include <stdlib.h>
 // #include <vector>
