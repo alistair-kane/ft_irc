@@ -1,10 +1,10 @@
 NAME	=	ircserv
 CC		=	c++
 
-SRCS	=	main.cpp Server.cpp Client.cpp Message.cpp ServerCMDS.cpp
+SRCS	=	main.cpp Message.cpp Server.cpp Client.cpp ServerCMDS.cpp
 OBJS	=	$(SRCS:%.cpp=%.o)
 
-CFLAGS	=	-Wall -Wextra -Werror -std=c++98
+CFLAGS	=	-Wall -Wextra #-Werror -std=c++98
 
 PORT		:=	4242
 PASS		:=	Wolfsburg
