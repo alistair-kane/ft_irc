@@ -163,69 +163,72 @@ void * Server::get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int	Server::exec_cmds(ServerCMD cmd, char **cmd_args)
+int	Server::exec_cmds(ServerCMD cmd, Message &cmd_msg)
 {
 	switch (cmd)
 	{
 		case ADMIN:
-			// call appropriate function
+			exec_cmd_ADMIN(cmd_msg);
 		case AWAY:
-			// call appropriate function
+			exec_cmd_AWAY(cmd_msg);
 		case INVITE:
-			// call appropriate function
+			exec_cmd_INVITE(cmd_msg);
 		case JOIN:
-			// call appropriate function
+			exec_cmd_JOIN(cmd_msg);
 		case KICK:
-			// call appropriate function
+			exec_cmd_KICK(cmd_msg);
 		case KNOCK:
-			// call appropriate function
+			exec_cmd_KNOCK(cmd_msg);
 		case LINKS:
-			// call appropriate function
+			exec_cmd_LINKS(cmd_msg);
 		case LIST:
-			// call appropriate function
+			exec_cmd_LIST(cmd_msg);
 		case LUSERS:
-			// call appropriate function
+			exec_cmd_LUSERS(cmd_msg);
 		case MAP:
-			// call appropriate function
+			exec_cmd_MAP(cmd_msg);
 		case MODE:
-			// call appropriate function
+			exec_cmd_MODE(cmd_msg);
 		case MOTD:
-			// call appropriate function
+			exec_cmd_MOTD(cmd_msg);
 		case NAMES:
-			// call appropriate function
+			exec_cmd_NAMES(cmd_msg);
 		case NICK:
-			// call appropriate function
+			exec_cmd_NICK(cmd_msg);
 		case NOTICE:
-			// call appropriate function
+			exec_cmd_NOTICE(cmd_msg);
 		case PART:
-			// call appropriate function
+			exec_cmd_PART(cmd_msg);
 		case PASS:
-			// call appropriate function
+			exec_cmd_PASS(cmd_msg);
 		case PING:
-			// call appropriate function
+			exec_cmd_PING(cmd_msg);
 		case PONG:
-			// call appropriate function
+			exec_cmd_PONG(cmd_msg);
 		case PRIVMSG:
-			// call appropriate function
+			exec_cmd_PRIVMSG(cmd_msg);
 		case QUIT:
-			// call appropriate function
+			exec_cmd_QUIT(cmd_msg);
 		case RULES:
-			// call appropriate function
+			exec_cmd_RULES(cmd_msg);
 		case SETNAME:
-			// call appropriate function
+			exec_cmd_SETNAME(cmd_msg);
 		case SILENCE:
-			// call appropriate function
+			exec_cmd_SILENCE(cmd_msg);
 		case STATS:
-			// call appropriate function
+			exec_cmd_STATS(cmd_msg);
 		case USER:
-			// call appropriate function
+			exec_cmd_USER(cmd_msg);
 		case VERSION:
-			// call appropriate function
+			exec_cmd_VERSION(cmd_msg);
 		case WHO:
-			// call appropriate function
+			exec_cmd_WHO(cmd_msg);
 		case WHOIS:
-			// call appropriate function
+			exec_cmd_WHOIS(cmd_msg);
 		case WHOWAS:
-			// call appropriate function
+			exec_cmd_WHOWAS(cmd_msg);
+		default:
+			break;
 	}
+	return (0);
 }
