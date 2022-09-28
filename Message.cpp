@@ -32,14 +32,16 @@ Message::~Message(void)
 void	Message::parse(void)
 {
 	char	*line;
-	char	*sgmt;
+	char	*end_str;
 	int		idx;
 	// std::cout << "msg to parse: " << _raw << std::endl;
-	line = strtok(_raw, "\n");
+	line = strtok_r(_raw, "\n", &end_str);
 	while (line != NULL)
 	{
+		char *sgmt;
+		char *end_token;
 		std::cout << "line: " << line << std::endl;	
-		sgmt = strtok(line, " ");
+		sgmt = strtok_r(line, " ", &end_token);
 		idx = 0;
 		while (sgmt != NULL)
 		{
@@ -49,10 +51,11 @@ void	Message::parse(void)
 			else if (idx > 0)
 				this->arg = sgmt;
 			std::cout << "sep sgmt: " << sgmt << std::endl;
-			sgmt = strtok(NULL, " ");
+			sgmt = strtok_r(NULL, " ", &end_token);
+
 			idx++;
 		}
-		line = strtok(NULL, "\n");
+		line = strtok_r(NULL, "\n", &end_str);
 	}
 }
 
