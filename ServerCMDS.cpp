@@ -65,9 +65,31 @@ int	exec_cmd_NAMES(Message &cmd_msg)
 
 }
 
+// registering the session
+// !!!! need to handle changing the nickname
 int	exec_cmd_NICK(Message &cmd_msg)
 {
+	map<int, Client>::iterator	it;
 
+	// check if the arg isnt empty or invalid
+
+	// check if the param of nick is already contained in the client list
+	//		if yes - return the error
+	for (it = client_list.begin(); it != client_list.end(); it++)
+	{
+		// if the nickname is equal to the arg, and the fd already exists, change it
+		if (it->second.get_nickname() == cmd_msg.get_arg())
+		{
+			std::cout << "Name already exists error etc" << std::endl;
+			return 1;
+		}
+	}
+
+	// if not, create a new instance of the client class and add to the client list map
+	// along with the fd of the socket 
+	Client new_client(cmd_msg.get_fd(), cmd_msg.get_arg());
+	client_list.insert({cmd_msg.get_fd, new_client});
+	// send a message back?
 }
 
 int	exec_cmd_NOTICE(Message &cmd_msg)

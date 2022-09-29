@@ -6,6 +6,9 @@
 Client::Client(int const & fd) :fd(fd), nickname(""), username("")
 {}
 
+Client::Client(int const & fd, std::string const & nickname) :fd(fd), nickname(""), username("")
+{}
+
 Client::Client(std::string const & nickname) :fd(-1), nickname(nickname), username(""), message_buffer("")
 {}
 

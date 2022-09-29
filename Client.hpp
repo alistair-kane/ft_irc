@@ -6,6 +6,8 @@ class Client
 		//Client(void);
 		Client(int const & fd);
 		Client(std::string const & nickname);
+		Client(int const & fd, std::string const & nickname);
+
 		Client(Client const & other);
 		Client & operator=(Client const & rhs);
 		~Client(void);
