@@ -78,12 +78,11 @@ int	Server::exec_cmd_NAMES(Message &cmd_msg)
 	return (0);
 }
 
-<<<<<<< HEAD
 // registering the session
 // !!!! need to handle changing the nickname
-int	exec_cmd_NICK(Message &cmd_msg)
+int	Server::exec_cmd_NICK(Message &cmd_msg)
 {
-	map<int, Client>::iterator	it;
+	std::map<int, Client>::iterator	it;
 
 	// check if the arg isnt empty or invalid
 
@@ -102,14 +101,15 @@ int	exec_cmd_NICK(Message &cmd_msg)
 	// if not, create a new instance of the client class and add to the client list map
 	// along with the fd of the socket 
 	Client new_client(cmd_msg.get_fd(), cmd_msg.get_arg());
-	client_list.insert({cmd_msg.get_fd, new_client});
+	client_list.insert({cmd_msg.get_fd(), new_client});
 	// send a message back?
-=======
+	return (0);
+}
+
 int	Server::exec_cmd_NICK(Message &cmd_msg)
 {
 	(void)cmd_msg;
 	return (0);
->>>>>>> 6e749d5b0c20ec974604eb9356f025fea6afb4a2
 }
 
 int	Server::exec_cmd_NOTICE(Message &cmd_msg)
