@@ -1,3 +1,5 @@
+#pragma once 
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -70,7 +72,7 @@ class Server
 
 		void    init_listener(void);
 		void    start_server(void);
-		int		exec_cmds(ServerCMD cmd, char **cmd_args);
+		int		exec_cmds(ServerCMD cmd, Message &cmd_msg);
 
 	private:
 
