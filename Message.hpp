@@ -18,10 +18,11 @@ class Message
 		// std::string const & print_message(void) const;
 		int const & get_fd(void) const;
 		// int get_len(void) const;
-		// char const * get_raw(void) const;
+		char const *raw_msg(void) const;
 		std::string const & get_receiver(void) const;
 		bool	receiver_is_channel(void) const;
 		std::string const & get_arg(void) const;
+		int					msg_len(void) const;
 
 	private:
 		std::string	prefix;
@@ -31,7 +32,7 @@ class Message
 		std::string	receiver;
 		std::string	content;
 		std::string	arg;
+		std::string _raw;
 		int 		_fd;
-		char		*_raw;
 		bool		_legit;
 };

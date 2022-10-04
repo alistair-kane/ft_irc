@@ -116,20 +116,19 @@ void    Server::start_server(void)
 						recieved.parse();
 						memset(buf, 0, sizeof(buf));
 
-						for (int j = 0; j < fd_count; j++)
+						for (int j = 0; j < send_msg_queue.size(); j++)
 						{
-							// starts collecting destinations to send the data out
-							int dest_fd = clients[j].fd;
-
-							// if (dest_fd != sockfd && dest_fd != sender_fd)
-							if (dest_fd != sockfd) // sends message back
+							// check if message is for channel
+							bool is_channel_msg = false;
+							Message message_to_send = send_msg_queue.front();
+							if (is_channel_msg)
 							{
-								if (send(dest_fd, buf, n_bytes, 0) < 0)
-								{
-									std::cout << "Error on send(): " << errno << std::endl;
-									exit(1);
-								}
+								// define channel here and set it as a second parameter
+								send_msg(message_to_send, true);
 							}
+							else
+								send_msg(message_to_send, false);
+							send_msg_queue.pop();
 						}
 					}
 				}
@@ -161,6 +160,23 @@ void * Server::get_in_addr(struct sockaddr *sa)
 	}
 
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
+void Server::print_error(const int &client_fd, std::string error_msg)
+{
+	std::cout << "Error: " << error_msg << std::endl;
+}
+
+void	Server::send_msg(Message const &msg, bool is_channel_msg)
+{
+	if (is_channel_msg)
+	{
+		// send message to a channel
+	}
+	else
+	{
+		send(msg.get_fd(), msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
+	}
 }
 
 int	Server::exec_cmds(ServerCMD cmd, Message &cmd_msg)

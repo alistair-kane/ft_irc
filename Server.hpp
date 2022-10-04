@@ -110,6 +110,12 @@ class Server
 		// void					store_message(int const & fd, char const * input);
 		// void					remove_message(int const & fd);
 
+		// When we created the Channel class we will use this function to distribute messages
+		// void					send_msg(Message const &msg, Channel const &channel);
+		void					send_msg(Message const &msg, bool is_channel_msg);
+
+		void					print_error(const int &client_fd, std::string error_msg);
+
 		// Server command functions
 		int	exec_cmd_ADMIN(Message &cmd_msg);
 		int	exec_cmd_AWAY(Message &cmd_msg);
