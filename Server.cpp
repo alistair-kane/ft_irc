@@ -169,13 +169,18 @@ void Server::print_error(const int &client_fd, std::string error_msg)
 
 void	Server::send_msg(Message const &msg, bool is_channel_msg)
 {
+	ssize_t bytes_sent = 0;
 	if (is_channel_msg)
 	{
 		// send message to a channel
 	}
 	else
 	{
-		send(msg.get_fd(), msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
+		bytes_sent = send(msg.get_fd(), msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
+	}
+	if (bytes_sent < (ssize_t)msg.msg_len())
+	{
+		// return error that message was not fully sent
 	}
 }
 
