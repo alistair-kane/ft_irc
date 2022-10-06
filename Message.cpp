@@ -46,7 +46,7 @@ void	Message::parse(void)
 		while (sgmt != NULL)
 		{
 			// need to do other checks etc
-			if (idx == 0)
+			if (idx == 0) // need to fix for every line
 				this->CMD = sgmt;
 			else if (idx > 0)
 				this->arg = sgmt;
@@ -85,14 +85,14 @@ int const & Message::get_fd(void) const
 	return (_fd);
 }
 
-int Message::msg_len(void) const
+size_t Message::msg_len(void) const
 {
-	return (this->_raw.length());
+	return (std::strlen(_raw));
 }
 
 char const *Message::raw_msg(void) const
 {
-	return (this->_raw.c_str());
+	return (_raw);
 }
 
 std::string const & Message::get_receiver(void) const

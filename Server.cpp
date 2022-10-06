@@ -115,8 +115,8 @@ void    Server::start_server(void)
 						Message recieved(clients[i].fd, buf);
 						recieved.parse();
 						memset(buf, 0, sizeof(buf));
-
-						for (int j = 0; j < send_msg_queue.size(); j++)
+						exec_cmds(recieved);
+						for (int j = 0; j < (int)send_msg_queue.size(); j++)
 						{
 							// check if message is for channel
 							bool is_channel_msg = false;
@@ -164,6 +164,7 @@ void * Server::get_in_addr(struct sockaddr *sa)
 
 void Server::print_error(const int &client_fd, std::string error_msg)
 {
+	(void)client_fd;
 	std::cout << "Error: " << error_msg << std::endl;
 }
 
@@ -176,6 +177,7 @@ void	Server::send_msg(Message const &msg, bool is_channel_msg)
 	}
 	else
 	{
+		std::cout << "SENDING: [" << msg.raw_msg() << "] to fd:[" << msg.get_fd() << "]" << std::endl;
 		bytes_sent = send(msg.get_fd(), msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
 	}
 	if (bytes_sent < (ssize_t)msg.msg_len())
@@ -184,8 +186,18 @@ void	Server::send_msg(Message const &msg, bool is_channel_msg)
 	}
 }
 
-int	Server::exec_cmds(ServerCMD cmd, Message &cmd_msg)
+Server::ServerCMD Server::match_cmd(Message &cmd_msg)
 {
+	std::cout << "CMD:" << cmd_msg.get_cmd() << std::endl;
+	if (cmd_msg.get_cmd() == "NICK")
+		return (NICK);
+	return (WHOWAS);
+}
+
+
+int	Server::exec_cmds(Message &cmd_msg)
+{
+	ServerCMD cmd = match_cmd(cmd_msg);
 	switch (cmd)
 	{
 		case ADMIN:
