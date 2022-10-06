@@ -119,15 +119,15 @@ void    Server::start_server(void)
 						for (int j = 0; j < send_msg_queue.size(); j++)
 						{
 							// check if message is for channel
-							bool is_channel_msg = false;
-							Message message_to_send = send_msg_queue.front();
-							if (is_channel_msg)
+							Message msg_to_send = send_msg_queue.front();
+							if (msg_to_send.receiver_is_channel())
 							{
-								// define channel here and set it as a second parameter
-								send_msg(message_to_send, true);
+								std::map<std::string, Channel>::iterator channel = channel_list.find(msg_to_send.get_receiver());
+								if (channel != channel_list.end())
+									send_channel_msg(msg_to_send, channel->second);
 							}
 							else
-								send_msg(message_to_send, false);
+								send_priv_msg(msg_to_send);
 							send_msg_queue.pop();
 						}
 					}
@@ -167,16 +167,30 @@ void Server::print_error(const int &client_fd, std::string error_msg)
 	std::cout << "Error: " << error_msg << std::endl;
 }
 
-void	Server::send_msg(Message const &msg, bool is_channel_msg)
+void	Server::send_priv_msg(Message const &msg)
 {
 	ssize_t bytes_sent = 0;
-	if (is_channel_msg)
+
+	bytes_sent = send(msg.get_fd(), msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
+	if (bytes_sent < (ssize_t)msg.msg_len())
 	{
-		// send message to a channel
+		// return error that message was not fully sent
 	}
-	else
+}
+
+void	Server::send_channel_msg(Message const &msg, Channel const &channel)
+{
+	std::map<int, std::string>::const_iterator itb = channel.get_member_list().begin();
+	std::map<int, std::string>::const_iterator ite = channel.get_member_list().end();
+	ssize_t bytes_sent = 0;
+	int	sender = msg.get_fd();
+	
+	for (; itb != ite; ++itb)
 	{
-		bytes_sent = send(msg.get_fd(), msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
+		if (itb->first != sender)
+		{
+			bytes_sent = send(itb->first, msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
+		}
 	}
 	if (bytes_sent < (ssize_t)msg.msg_len())
 	{

@@ -27,6 +27,7 @@
 
 #include "Message.hpp"
 #include "Client.hpp"
+#include "Channel.hpp"
 
 class Server
 {
@@ -82,7 +83,8 @@ class Server
 		std::string				_hostname;
 
 		//place to store the clients
-		std::map<int, Client>	client_list;
+		std::map<int, Client>			client_list;
+		std::map<std::string, Channel>	channel_list;
 
 		// need to create message class?
 		std::queue<Message>	received_msg_queue;
@@ -112,7 +114,8 @@ class Server
 
 		// When we created the Channel class we will use this function to distribute messages
 		// void					send_msg(Message const &msg, Channel const &channel);
-		void					send_msg(Message const &msg, bool is_channel_msg);
+		void	send_priv_msg(Message const &msg);
+		void	send_channel_msg(Message const &msg, Channel const &channel);
 
 		void					print_error(const int &client_fd, std::string error_msg);
 
