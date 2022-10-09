@@ -73,7 +73,7 @@ class Server
 
 		void    init_listener(void);
 		void    start_server(void);
-		int		exec_cmds(Message &cmd_msg);
+		int		exec_cmds(void);
 
 	private:
 
@@ -111,7 +111,7 @@ class Server
 
 		// void					store_message(int const & fd, char const * input);
 		// void					remove_message(int const & fd);
-		
+		void					parse_messages(int const &fd, char *buf);
 		ServerCMD				match_cmd(Message &cmd_msg);
 
 		// When we created the Channel class we will use this function to distribute messages

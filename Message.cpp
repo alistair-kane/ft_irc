@@ -1,5 +1,8 @@
 #include "Message.hpp"
 
+Message::Message(int const & fd) : _fd(fd)
+{}
+
 Message::Message(int const & fd, char *input) : _fd(fd), _raw(input)
 {
 	this->_legit = false;
@@ -29,35 +32,35 @@ Message const & Message::operator=(Message const & rhs)
 Message::~Message(void)
 {}
 
-void	Message::parse(void)
-{
-	char	*line;
-	char	*end_str;
-	int		idx;
-	// std::cout << "msg to parse: " << _raw << std::endl;
-	line = strtok_r(_raw, "\n", &end_str);
-	while (line != NULL)
-	{
-		char *sgmt;
-		char *end_token;
-		std::cout << "line: " << line << std::endl;	
-		sgmt = strtok_r(line, " ", &end_token);
-		idx = 0;
-		while (sgmt != NULL)
-		{
-			// need to do other checks etc
-			if (idx == 0) // need to fix for every line
-				this->CMD = sgmt;
-			else if (idx > 0)
-				this->arg = sgmt;
-			std::cout << "sep sgmt: " << sgmt << std::endl;
-			sgmt = strtok_r(NULL, " ", &end_token);
+// void	Message::parse(void)
+// {
+	// char	*line;
+	// char	*end_str;
+	// int		idx;
+	// // std::cout << "msg to parse: " << _raw << std::endl;
+	// line = strtok_r(_raw, "\n", &end_str);
+	// while (line != NULL)
+	// {
+	// 	char *sgmt;
+	// 	char *end_token;
+	// 	std::cout << "line: " << line << std::endl;	
+	// 	sgmt = strtok_r(line, " ", &end_token);
+	// 	idx = 0;
+	// 	while (sgmt != NULL)
+	// 	{
+	// 		// need to do other checks etc
+	// 		if (idx == 0) // need to fix for every line
+	// 			this->CMD = sgmt;
+	// 		else if (idx > 0)
+	// 			this->arg = sgmt;
+	// 		std::cout << "sep sgmt: " << sgmt << std::endl;
+	// 		sgmt = strtok_r(NULL, " ", &end_token);
 
-			idx++;
-		}
-		line = strtok_r(NULL, "\n", &end_str);
-	}
-}
+	// 		idx++;
+	// 	}
+	// 	line = strtok_r(NULL, "\n", &end_str);
+	// }
+// }
 
 std::string const & Message::get_cmd(void) const
 {
@@ -84,6 +87,17 @@ int const & Message::get_fd(void) const
 {
 	return (_fd);
 }
+
+void	Message::set_cmd(std::string cmd)
+{
+	this->CMD = cmd;
+}
+
+void	Message::set_arg(std::string arg)
+{
+	this->arg = arg;
+}
+
 
 size_t Message::msg_len(void) const
 {

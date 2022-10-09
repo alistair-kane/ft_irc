@@ -1,5 +1,8 @@
 #include "Channel.hpp"
 
+Channel::~Channel(void)
+{}
+
 void Channel::add_member(int const &fd, std::string const &nick)
 {
 	member_list.insert(std::make_pair(fd, nick));
@@ -50,7 +53,7 @@ bool	Channel::is_channel_private(void) const
 	return (this->is_private_channel);
 }
 
-void	invite_user(std::string const & nick)
-{
+// void	invite_user(std::string const & nick)
+// {
 	
-}
+// }

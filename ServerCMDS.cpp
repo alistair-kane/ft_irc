@@ -97,16 +97,15 @@ int	Server::exec_cmd_NICK(Message &cmd_msg)
 			return 1;
 		}
 	}
-
 	// if not, create a new instance of the client class and add to the client list map
 	// along with the fd of the socket 
 	Client new_client(cmd_msg.get_fd(), cmd_msg.get_arg());
-	client_list.insert({cmd_msg.get_fd(), new_client});
+	client_list.insert(std::make_pair(cmd_msg.get_fd(), new_client));
 	
 	// send a message back?
-	char msg[] = "Hi, welcome to IRC\r\n Your host is";
+	char msg[] = "Hi, welcome to IRC\r\n Your host is ";
 	char *temp = std::strcat(msg, cmd_msg.get_arg().c_str());
-	temp = std::strcat(temp, "running version ali_tim_irc-0.1\r\n This server was created sometime\r\n MOTD File is missing\r\n");
+	// temp = std::strcat(temp, "running version ali_tim_irc-0.1\r\n This server was created sometime\r\n MOTD File is missing\r\n");
 
 	Message answer(cmd_msg.get_fd(), temp);
 	send_msg_queue.push(answer);
