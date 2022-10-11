@@ -11,7 +11,7 @@ class Message
 	public:
 
 		Message(int const & fd);
-		Message(int const & fd, char *input);
+		Message(int const & fd, std::string input);
 		Message(Message const & other);
 		Message const & operator=(Message const & rhs);
 		~Message(void);
@@ -22,8 +22,8 @@ class Message
 		int const 			&get_fd(void) const;
 		// int get_len(void) const;
 		void				set_cmd(std::string cmd);
-		void				set_arg(std::string arg);
-		char const 			*raw_msg(void) const;
+		void				set_arg(std::string _arg);
+		const char 			*raw_msg(void) const;
 		std::string const 	&get_receiver(void) const;
 		bool				receiver_is_channel(void) const;
 		std::string const 	&get_arg(void) const;
@@ -36,8 +36,8 @@ class Message
 		std::string	sender;
 		std::string	receiver;
 		std::string	content;
-		std::string	arg;
+		std::string	_arg;
 		int 		_fd;
-		char 		*_raw;
+		std::string _raw;
 		bool		_legit;
 };

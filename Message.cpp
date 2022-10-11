@@ -3,7 +3,7 @@
 Message::Message(int const & fd) : _fd(fd)
 {}
 
-Message::Message(int const & fd, char *input) : _fd(fd), _raw(input)
+Message::Message(int const & fd, std::string input) : _fd(fd), _raw(input)
 {
 	this->_legit = false;
 	// if (this->_raw.find("\r\n") != std::string::npos)
@@ -69,7 +69,7 @@ std::string const & Message::get_cmd(void) const
 
 std::string const & Message::get_arg(void) const
 {
-	return (this->arg);
+	return (this->_arg);
 }
 
 // std::string const & Message::print_message(void) const
@@ -95,18 +95,18 @@ void	Message::set_cmd(std::string cmd)
 
 void	Message::set_arg(std::string arg)
 {
-	this->arg = arg;
+	this->_arg = arg;
 }
 
 
 size_t Message::msg_len(void) const
 {
-	return (std::strlen(_raw));
+	return ((_raw.length()));
 }
 
-char const *Message::raw_msg(void) const
+const char *Message::raw_msg(void) const
 {
-	return (_raw);
+	return (_raw.c_str());
 }
 
 std::string const & Message::get_receiver(void) const

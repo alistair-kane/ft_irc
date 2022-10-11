@@ -102,13 +102,14 @@ int	Server::exec_cmd_NICK(Message &cmd_msg)
 	Client new_client(cmd_msg.get_fd(), cmd_msg.get_arg());
 	client_list.insert(std::make_pair(cmd_msg.get_fd(), new_client));
 	
+	std::cout << "name" << cmd_msg.get_arg() << std::endl;
 	// send a message back?
-	char msg[] = "Hi, welcome to IRC\r\n Your host is ";
-	char *temp = std::strcat(msg, cmd_msg.get_arg().c_str());
-	// temp = std::strcat(temp, "running version ali_tim_irc-0.1\r\n This server was created sometime\r\n MOTD File is missing\r\n");
-
-	Message answer(cmd_msg.get_fd(), temp);
+	std::string msg = "001 " + cmd_msg.get_arg() + " :Hi, welcome to IRC\r\n";
+	Message answer(cmd_msg.get_fd(), msg);
 	send_msg_queue.push(answer);
+	
+	
+	
 	return (0);
 }
 

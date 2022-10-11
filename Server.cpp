@@ -126,7 +126,6 @@ void    Server::start_server(void)
 							}
 							else
 							{
-								std::cout << "SEND IT: " << msg_to_send.raw_msg() << std::endl;
 								send_priv_msg(msg_to_send);
 							}
 							send_msg_queue.pop();
@@ -158,11 +157,10 @@ void	Server::parse_messages(int const &fd, char *buf)
 			// need to do other checks etc
 			if (idx == 0) // need to fix for every line
 				temp.set_cmd(sgmt);
-			else if (idx > 0)
+			else if (idx == 1)
 				temp.set_arg(sgmt);
-			std::cout << "sep sgmt: " << sgmt << std::endl;
+			std::cout << idx << ":#\tsep sgmt: " << sgmt << std::endl;
 			sgmt = strtok_r(NULL, " ", &end_token);
-
 			idx++;
 		}
 		received_msg_queue.push(temp);
@@ -205,6 +203,7 @@ void	Server::send_priv_msg(Message const &msg)
 {
 	ssize_t bytes_sent = 0;
 
+	std::cout << "SEND IT: " << msg.raw_msg() << std::endl;
 	bytes_sent = send(msg.get_fd(), msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
 	if (bytes_sent < (ssize_t)msg.msg_len())
 	{
