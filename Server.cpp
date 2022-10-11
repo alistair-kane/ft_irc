@@ -37,12 +37,19 @@ void    Server::init_listener(void)
 		exit(1);
 	}
 
+	int yes=1;
+	// lose the pesky "Address already in use" error message
+	if (setsockopt(listener,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof yes) == -1)
+	{
+		perror("setsockopt");
+		exit(1);
+	}
+
 	if (listen(sockfd, 5) < 0)
 	{
 		std::cout << "Error on listen(): " << errno << std::endl;
 		exit(1);
 	}
-
 	std::memset(&client_addr, 0, sizeof(client_addr));
 }
 
