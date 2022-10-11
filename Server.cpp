@@ -30,6 +30,14 @@ void    Server::init_listener(void)
 	client_addr_len = sizeof(client_addr);
 	std::cout << "Socket = [" << sockfd << "]" << std::endl;
 
+	int yes=1;
+	// lose the pesky "Address already in use" error message
+	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
+	{
+		perror("setsockopt");
+		exit(1);
+	}
+
 	if (bind(sockfd, (struct sockaddr *) &_server_address, sizeof(_server_address)) < 0)
 	{
 		std::cout << "Error on bind(): " << errno << std::endl;
@@ -37,13 +45,6 @@ void    Server::init_listener(void)
 		exit(1);
 	}
 
-	int yes=1;
-	// lose the pesky "Address already in use" error message
-	if (setsockopt(listener,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof yes) == -1)
-	{
-		perror("setsockopt");
-		exit(1);
-	}
 
 	if (listen(sockfd, 5) < 0)
 	{
@@ -119,8 +120,8 @@ void    Server::start_server(void)
 					else // we got something valid from a client
 					{
 						parse_messages(clients[i].fd, buf);
-						memset(buf, 0, sizeof(buf));
 						exec_cmds();
+						memset(buf, 0, sizeof(buf));
 						for (int j = 0; j < (int)send_msg_queue.size(); j++)
 						{
 							// check if message is for channel
@@ -158,17 +159,17 @@ void	Server::parse_messages(int const &fd, char *buf)
 		char *end_token;
 		std::cout << "line: " << line << std::endl;	
 		sgmt = strtok_r(line, " ", &end_token);
-		idx = 0;
+		idx = -1;
 		while (sgmt != NULL)
 		{
+			idx++;
 			// need to do other checks etc
 			if (idx == 0) // need to fix for every line
 				temp.set_cmd(sgmt);
-			else if (idx == 1)
+			if (idx == 1)
 				temp.set_arg(sgmt);
 			std::cout << idx << ":#\tsep sgmt: " << sgmt << std::endl;
 			sgmt = strtok_r(NULL, " ", &end_token);
-			idx++;
 		}
 		received_msg_queue.push(temp);
 		line = strtok_r(NULL, "\n", &end_str);
@@ -255,6 +256,8 @@ int	Server::exec_cmds()
 	{
 		Message cmd_msg = received_msg_queue.front();
 		ServerCMD cmd = match_cmd(cmd_msg);
+		std::cout << "CMD BEFORE SWITCH: " << cmd_msg.get_cmd() << std::endl;
+		std::cout << "ARG BEFORE SWITCH: " << cmd_msg.get_arg() << std::endl;
 		switch (cmd)
 		{
 			case ADMIN:

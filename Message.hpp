@@ -35,7 +35,6 @@ class Message
 		std::string	CMD;
 		std::string	sender;
 		std::string	receiver;
-		std::string	content;
 		std::string	_arg;
 		int 		_fd;
 		std::string _raw;
