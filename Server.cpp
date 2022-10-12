@@ -269,7 +269,7 @@ void	Server::send_channel_msg(Message const &msg, Channel const &channel)
 
 void Server::match_cmd(Message &msg)
 {
-	const int size = 2;
+	int const size = 2;
 	std::string cmds[] = {"NICK", "LUSERS"};
 	void (Server::*func_pointers[size])(Message &cmd_msg) = {
 		&Server::exec_cmd_NICK,
@@ -281,11 +281,7 @@ void Server::match_cmd(Message &msg)
 		if (cmds[i] == msg.get_cmd())
 			(this->*func_pointers[i])(msg);
 	}
-
-	// if (cmd_msg->get_cmd() == "NICK")
-		// return (NICK);
 }
-
 
 int	Server::exec_cmds()
 {
@@ -294,8 +290,6 @@ int	Server::exec_cmds()
 	{
 		Message *cmd_msg = received_msg_queue.front();
 		match_cmd(*cmd_msg);
-
-
 		delete cmd_msg;
 		received_msg_queue.pop();
 	}
