@@ -267,24 +267,23 @@ void	Server::send_channel_msg(Message const &msg, Channel const &channel)
 	}
 }
 
-exec_funcs Server::match_cmd(std::string cmd)
+void Server::match_cmd(Message &msg)
 {
+	const int size = 2;
 	std::string cmds[] = {"NICK", "LUSERS"};
-	exec_funcs	func_pointers[] = {
+	void (Server::*func_pointers[size])(Message &cmd_msg) = {
 		&Server::exec_cmd_NICK,
 		&Server::exec_cmd_LUSERS
 	};
 
 	for (int i = 0; i < 2; i++)
 	{
-		if (cmds[i] == cmd)
-			return (this->*func_pointers[i])();
+		if (cmds[i] == msg.get_cmd())
+			(this->*func_pointers[i])(msg);
 	}
 
-	std::cout << "CMD:" << cmd_msg->get_cmd() << std::endl;
 	// if (cmd_msg->get_cmd() == "NICK")
 		// return (NICK);
-	return (void);
 }
 
 
@@ -294,7 +293,7 @@ int	Server::exec_cmds()
 	for (int i = 0; i < (int)received_msg_queue.size(); i++)
 	{
 		Message *cmd_msg = received_msg_queue.front();
-		ServerCMD cmd = match_cmd(cmd_msg);
+		match_cmd(*cmd_msg);
 
 
 		delete cmd_msg;
