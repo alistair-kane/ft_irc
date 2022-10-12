@@ -20,7 +20,32 @@ int	Server::exec_cmd_INVITE(Message &cmd_msg)
 
 int	Server::exec_cmd_JOIN(Message &cmd_msg)
 {
-	(void)cmd_msg;
+	// get fd from user joining channel
+	int	const fd = cmd_msg.get_fd();
+
+	// get the channel name from the argument
+	std::string	const &channel_name = cmd_msg.get_arg();
+
+	// get client who wants to join channel by fd
+	Client *client_to_add = get_client(fd);
+	if (client_to_add == NULL)
+		return ;
+
+	// get nickname of client
+	std::string nick = client_to_add->get_nickname();
+
+	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
+
+	// if channel doesn't exist create one with caller as operator/channel_owner
+	if (channel == channel_list.end())
+	{
+		channel_list.insert(std::make_pair(channel_name, Channel(channel_name, fd)));
+		channel = channel_list.find(channel_name);
+	}
+
+	// if channel exists add user to it
+	channel->second.add_member(fd, nick);
+
 	return (0);
 }
 

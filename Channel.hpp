@@ -8,12 +8,15 @@
 class Channel
 {	
 public:
-	Channel();
+	Channel(std::string const &channel_name, int const &fd);
 	~Channel();
 
 		std::map<int, std::string> const	&get_member_list(void) const;
 		void								add_member(int const &fd, std::string const &nick);
 		void								remove_member(int const & fd);
+
+		void				add_operator(int const & fd);
+		void				remove_operator(int const & fd);
 
 		std::set<std::string> const	&get_ban_list(void) const;
 		void						ban_user(std::string const & nick);
@@ -30,6 +33,7 @@ public:
  
 private:
 	bool						is_private_channel;
+	std::set<int>				operator_list;
 	std::string					channel_name;
 	std::string					channel_topic;
 	std::map<int, std::string>	member_list;

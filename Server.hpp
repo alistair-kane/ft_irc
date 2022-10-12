@@ -103,6 +103,7 @@ class Server
 		// void					collect_messages(void);
 		// void					update_pollfd(void);
 		// int						get_client_fd(std::string const & nickname);
+		Client					*get_client(int const & fd);
 		
 		void					add_new_client(int newfd, int *fd_count);
 		void					remove_client(int i, int *ft_count);
