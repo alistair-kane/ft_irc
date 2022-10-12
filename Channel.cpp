@@ -1,5 +1,11 @@
 #include "Channel.hpp"
 
+Channel::Channel(std::string const &channel_name, int const & fd) :channel_name(channel_name)
+{
+	this->operator_list.insert(fd);
+	this->is_private_channel = false;
+}
+
 Channel::~Channel(void)
 {}
 
@@ -11,6 +17,16 @@ void Channel::add_member(int const &fd, std::string const &nick)
 void	Channel::remove_member(int const &fd)
 {
 	member_list.erase(fd);
+}
+
+void	Channel::add_operator(int const &fd)
+{
+	operator_list.insert(fd);
+}
+
+void	Channel::remove_operator(int const &fd)
+{
+	operator_list.erase(fd);
 }
 
 void	Channel::ban_user(std::string const & nick)

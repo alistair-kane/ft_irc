@@ -219,6 +219,14 @@ void * Server::get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+Client *Server::get_client(int const & fd)
+{
+	std::map<int, Client>::iterator client_it = client_list.find(fd);
+	if (client_it != client_list.end())
+		return (&client_it->second);
+	return (NULL);
+}
+
 void Server::print_error(const int &client_fd, std::string error_msg)
 {
 	(void)client_fd;
