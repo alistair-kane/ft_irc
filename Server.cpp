@@ -122,7 +122,8 @@ void    Server::start_server(void)
 						parse_messages(clients[i].fd, buf);
 						exec_cmds();
 						memset(buf, 0, sizeof(buf));
-						for (int j = 0; j < (int)send_msg_queue.size(); j++)
+						size_t queue_len = send_msg_queue.size();
+						for (size_t j = 0; j < queue_len; j++)
 						{
 							// check if message is for channel
 							Message msg_to_send = send_msg_queue.front();
@@ -150,29 +151,46 @@ void	Server::parse_messages(int const &fd, char *buf)
 	char	*line;
 	char	*end_str;
 	int		idx;
+	std::map<int, Client>::iterator	it;
+	std::string	sender = "";
+	//
+	// if fd matches a stored fd, get the name from map and assign it to sender 
+	for (it = client_list.begin(); it != client_list.end(); it++)
+	{
+		// if the nickname is equal to the arg, and the fd already exists, change it
+		if (it->first == fd)
+		{
+			std::cout << "User is already registered and sender can be assigned" << std::endl;
+			sender = it->second.get_nickname();
+		}
+	}
+
 	// std::cout << "msg to parse: " << _raw << std::endl;
 	line = strtok_r(buf, "\n", &end_str);
 	while (line != NULL)
 	{
-		Message temp(fd);
+		Message *temp = new Message(fd);
 		char *sgmt;
 		char *end_token;
-		std::cout << "line: " << line << std::endl;	
-		sgmt = strtok_r(line, " ", &end_token);
+		std::cout << "line: " << line << std::endl;
+		sgmt = strtok_r(line, " \r\n", &end_token);
 		idx = -1;
 		while (sgmt != NULL)
 		{
 			idx++;
 			// need to do other checks etc
 			if (idx == 0) // need to fix for every line
-				temp.set_cmd(sgmt);
+				temp->set_cmd(sgmt);
 			if (idx == 1)
-				temp.set_arg(sgmt);
+			{
+				temp->set_arg(sgmt);
+			}
 			std::cout << idx << ":#\tsep sgmt: " << sgmt << std::endl;
-			sgmt = strtok_r(NULL, " ", &end_token);
+			sgmt = strtok_r(NULL, " \r\n", &end_token);
 		}
+		temp->set_sender(sender);
 		received_msg_queue.push(temp);
-		line = strtok_r(NULL, "\n", &end_str);
+		line = strtok_r(NULL, " \r\n", &end_str);
 	}
 }
 
@@ -211,11 +229,11 @@ void	Server::send_priv_msg(Message const &msg)
 {
 	ssize_t bytes_sent = 0;
 
-	std::cout << "SEND IT: " << msg.raw_msg() << std::endl;
+	std::cout << "SENDING: " << msg.raw_msg() << std::endl;
 	bytes_sent = send(msg.get_fd(), msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
 	if (bytes_sent < (ssize_t)msg.msg_len())
 	{
-		// return error that message was not fully sent
+		std::cout << "error: message was not fully sent" << std::endl;
 	}
 }
 
@@ -241,10 +259,10 @@ void	Server::send_channel_msg(Message const &msg, Channel const &channel)
 	}
 }
 
-Server::ServerCMD Server::match_cmd(Message &cmd_msg)
+Server::ServerCMD Server::match_cmd(Message *cmd_msg)
 {
-	std::cout << "CMD:" << cmd_msg.get_cmd() << std::endl;
-	if (cmd_msg.get_cmd() == "NICK")
+	std::cout << "CMD:" << cmd_msg->get_cmd() << std::endl;
+	if (cmd_msg->get_cmd() == "NICK")
 		return (NICK);
 	return (WHOWAS);
 }
@@ -254,105 +272,104 @@ int	Server::exec_cmds()
 {
 	for (int i = 0; i < (int)received_msg_queue.size(); i++)
 	{
-		Message cmd_msg = received_msg_queue.front();
+		Message *cmd_msg = received_msg_queue.front();
 		ServerCMD cmd = match_cmd(cmd_msg);
-		std::cout << "CMD BEFORE SWITCH: " << cmd_msg.get_cmd() << std::endl;
-		std::cout << "ARG BEFORE SWITCH: " << cmd_msg.get_arg() << std::endl;
 		switch (cmd)
 		{
 			case ADMIN:
-				exec_cmd_ADMIN(cmd_msg);
+				exec_cmd_ADMIN(*cmd_msg);
 				break;
 			case AWAY:
-				exec_cmd_AWAY(cmd_msg);
+				exec_cmd_AWAY(*cmd_msg);
 				break;
 			case INVITE:
-				exec_cmd_INVITE(cmd_msg);
+				exec_cmd_INVITE(*cmd_msg);
 				break;
 			case JOIN:
-				exec_cmd_JOIN(cmd_msg);
+				exec_cmd_JOIN(*cmd_msg);
 				break;
 			case KICK:
-				exec_cmd_KICK(cmd_msg);
+				exec_cmd_KICK(*cmd_msg);
 				break;
 			case KNOCK:
-				exec_cmd_KNOCK(cmd_msg);
+				exec_cmd_KNOCK(*cmd_msg);
 				break;
 			case LINKS:
-				exec_cmd_LINKS(cmd_msg);
+				exec_cmd_LINKS(*cmd_msg);
 				break;
 			case LIST:
-				exec_cmd_LIST(cmd_msg);
+				exec_cmd_LIST(*cmd_msg);
 				break;
 			case LUSERS:
-				exec_cmd_LUSERS(cmd_msg);
+				exec_cmd_LUSERS(*cmd_msg);
 				break;
 			case MAP:
-				exec_cmd_MAP(cmd_msg);
+				exec_cmd_MAP(*cmd_msg);
 				break;
 			case MODE:
-				exec_cmd_MODE(cmd_msg);
+				exec_cmd_MODE(*cmd_msg);
 				break;
 			case MOTD:
-				exec_cmd_MOTD(cmd_msg);
+				exec_cmd_MOTD(*cmd_msg);
 				break;
 			case NAMES:
-				exec_cmd_NAMES(cmd_msg);
+				exec_cmd_NAMES(*cmd_msg);
 				break;
 			case NICK:
-				exec_cmd_NICK(cmd_msg);
+				exec_cmd_NICK(*cmd_msg);
 				break;
 			case NOTICE:
-				exec_cmd_NOTICE(cmd_msg);
+				exec_cmd_NOTICE(*cmd_msg);
 				break;
 			case PART:
-				exec_cmd_PART(cmd_msg);
+				exec_cmd_PART(*cmd_msg);
 				break;
 			case PASS:
-				exec_cmd_PASS(cmd_msg);
+				exec_cmd_PASS(*cmd_msg);
 				break;
 			case PING:
-				exec_cmd_PING(cmd_msg);
+				exec_cmd_PING(*cmd_msg);
 				break;
 			case PONG:
-				exec_cmd_PONG(cmd_msg);
+				exec_cmd_PONG(*cmd_msg);
 				break;
 			case PRIVMSG:
-				exec_cmd_PRIVMSG(cmd_msg);
+				exec_cmd_PRIVMSG(*cmd_msg);
 				break;
 			case QUIT:
-				exec_cmd_QUIT(cmd_msg);
+				exec_cmd_QUIT(*cmd_msg);
 				break;
 			case RULES:
-				exec_cmd_RULES(cmd_msg);
+				exec_cmd_RULES(*cmd_msg);
 				break;
 			case SETNAME:
-				exec_cmd_SETNAME(cmd_msg);
+				exec_cmd_SETNAME(*cmd_msg);
 				break;
 			case SILENCE:
-				exec_cmd_SILENCE(cmd_msg);
+				exec_cmd_SILENCE(*cmd_msg);
 				break;
 			case STATS:
-				exec_cmd_STATS(cmd_msg);
+				exec_cmd_STATS(*cmd_msg);
 				break;
 			case USER:
-				exec_cmd_USER(cmd_msg);
+				exec_cmd_USER(*cmd_msg);
 				break;
 			case VERSION:
-				exec_cmd_VERSION(cmd_msg);
+				exec_cmd_VERSION(*cmd_msg);
 				break;
 			case WHO:
-				exec_cmd_WHO(cmd_msg);
+				exec_cmd_WHO(*cmd_msg);
 				break;
 			case WHOIS:
-				exec_cmd_WHOIS(cmd_msg);
+				exec_cmd_WHOIS(*cmd_msg);
 				break;
 			case WHOWAS:
-				exec_cmd_WHOWAS(cmd_msg);
+				exec_cmd_WHOWAS(*cmd_msg);
 				break;
 			default:
 				break;
 		}
+		delete cmd_msg;
 		received_msg_queue.pop();
 	}
 	return (0);

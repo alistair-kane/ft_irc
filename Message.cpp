@@ -42,6 +42,11 @@ std::string const & Message::get_arg(void) const
 	return (this->_arg);
 }
 
+std::string const & Message::get_sender(void) const
+{
+	return (this->sender);
+}
+
 // std::string const & Message::print_message(void) const
 // {
 // 	std::cout	<< "fd: [" << _fd << "]\n"
@@ -68,6 +73,10 @@ void	Message::set_arg(std::string arg)
 	this->_arg = arg;
 }
 
+void	Message::set_sender(std::string sender)
+{
+	this->sender = sender;
+}
 
 size_t Message::msg_len(void) const
 {

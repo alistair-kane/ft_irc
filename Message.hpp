@@ -18,15 +18,17 @@ class Message
 
 		void				parse(void);
 		std::string const	&get_cmd(void) const;
+		std::string const 	&get_arg(void) const;
+		std::string const	&get_sender(void) const;
 		// std::string const & print_message(void) const;
 		int const 			&get_fd(void) const;
 		// int get_len(void) const;
 		void				set_cmd(std::string cmd);
 		void				set_arg(std::string _arg);
+		void				set_sender(std::string _sender);
 		const char 			*raw_msg(void) const;
 		std::string const 	&get_receiver(void) const;
 		bool				receiver_is_channel(void) const;
-		std::string const 	&get_arg(void) const;
 		size_t				msg_len(void) const;
 
 	private:

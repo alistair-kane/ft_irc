@@ -50,7 +50,9 @@ int	Server::exec_cmd_LIST(Message &cmd_msg)
 
 int	Server::exec_cmd_LUSERS(Message &cmd_msg)
 {
-	(void)cmd_msg;
+	Message msg(cmd_msg.get_fd(), ("251 " + cmd_msg.get_sender() + " :There are " +
+		std::to_string(client_list.size()) + " users and 0 services on 1 server\r\n"));
+	send_msg_queue.push(msg);
 	return (0);
 }
 
@@ -101,14 +103,19 @@ int	Server::exec_cmd_NICK(Message &cmd_msg)
 	// along with the fd of the socket 
 	Client new_client(cmd_msg.get_fd(), cmd_msg.get_arg());
 	client_list.insert(std::make_pair(cmd_msg.get_fd(), new_client));
-	
-	std::cout << "name" << cmd_msg.get_arg() << std::endl;
+	cmd_msg.set_sender(new_client.get_nickname());
 	// send a message back?
-	std::string msg = "001 " + cmd_msg.get_arg() + " :Hi, welcome to IRC\r\n";
-	Message answer(cmd_msg.get_fd(), msg);
-	send_msg_queue.push(answer);
-	
-	
+	Message msg1(cmd_msg.get_fd(), ("001 " + new_client.get_nickname() + " :Hi, welcome to IRC\r\n"));
+	send_msg_queue.push(msg1);
+	Message msg2(cmd_msg.get_fd(), ("002 " + new_client.get_nickname() + " :Your host is " +
+		_hostname + ", running version ALISTIM-v0.01 \r\n"));
+	send_msg_queue.push(msg2);
+	// could generate a timestamp when server class initialized to use here
+	Message msg3(cmd_msg.get_fd(), ("003 " + new_client.get_nickname() + " :This server was created 2022AD\r\n"));
+	send_msg_queue.push(msg3);
+	Message msg4(cmd_msg.get_fd(), ("004 " + new_client.get_nickname() + " " + _hostname + "ALISTIM-v0.01 o o\r\n"));
+	send_msg_queue.push(msg4);
+	exec_cmd_LUSERS(cmd_msg);
 	
 	return (0);
 }

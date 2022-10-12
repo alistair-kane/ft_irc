@@ -18,7 +18,7 @@
 #include <errno.h>
 #include <stdlib.h>
 // #include <vector>
-
+#include <algorithm>
 #include <cstring>
 
 
@@ -87,8 +87,8 @@ class Server
 		std::map<std::string, Channel>	channel_list;
 
 		// need to create message class?
-		std::queue<Message>	received_msg_queue;
-		std::queue<Message>	send_msg_queue;
+		std::queue<Message *>	received_msg_queue;
+		std::queue<Message>		send_msg_queue;
 		std::map<int, Message>	recieved_msg_list;
 		std::map<int, Message>	sent_msg_list;
 
@@ -112,7 +112,7 @@ class Server
 		// void					store_message(int const & fd, char const * input);
 		// void					remove_message(int const & fd);
 		void					parse_messages(int const &fd, char *buf);
-		ServerCMD				match_cmd(Message &cmd_msg);
+		ServerCMD				match_cmd(Message *cmd_msg);
 
 		// When we created the Channel class we will use this function to distribute messages
 		// void					send_msg(Message const &msg, Channel const &channel);
