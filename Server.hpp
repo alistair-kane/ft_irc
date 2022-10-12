@@ -112,7 +112,8 @@ class Server
 		// void					store_message(int const & fd, char const * input);
 		// void					remove_message(int const & fd);
 		void					parse_messages(int const &fd, char *buf);
-		ServerCMD				match_cmd(Message *cmd_msg);
+		// ServerCMD			match_cmd(Message *cmd_msg);
+		exec_funcs				match_cmd(std::string cmd);
 
 		// When we created the Channel class we will use this function to distribute messages
 		// void					send_msg(Message const &msg, Channel const &channel);
@@ -154,3 +155,5 @@ class Server
 		int	exec_cmd_WHOWAS(Message &cmd_msg);
 
 };
+
+typedef void	(Server:: *exec_funcs)(void);

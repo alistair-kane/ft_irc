@@ -259,116 +259,36 @@ void	Server::send_channel_msg(Message const &msg, Channel const &channel)
 	}
 }
 
-Server::ServerCMD Server::match_cmd(Message *cmd_msg)
+exec_funcs Server::match_cmd(std::string cmd)
 {
+	std::string cmds[] = {"NICK", "LUSERS"};
+	exec_funcs	func_pointers[] = {
+		&Server::exec_cmd_NICK,
+		&Server::exec_cmd_LUSERS
+	};
+
+	for (int i = 0; i < 2; i++)
+	{
+		if (cmds[i] == cmd)
+			return (this->*func_pointers[i])();
+	}
+
 	std::cout << "CMD:" << cmd_msg->get_cmd() << std::endl;
-	if (cmd_msg->get_cmd() == "NICK")
-		return (NICK);
-	return (WHOWAS);
+	// if (cmd_msg->get_cmd() == "NICK")
+		// return (NICK);
+	return (void);
 }
 
 
 int	Server::exec_cmds()
 {
+
 	for (int i = 0; i < (int)received_msg_queue.size(); i++)
 	{
 		Message *cmd_msg = received_msg_queue.front();
 		ServerCMD cmd = match_cmd(cmd_msg);
-		switch (cmd)
-		{
-			case ADMIN:
-				exec_cmd_ADMIN(*cmd_msg);
-				break;
-			case AWAY:
-				exec_cmd_AWAY(*cmd_msg);
-				break;
-			case INVITE:
-				exec_cmd_INVITE(*cmd_msg);
-				break;
-			case JOIN:
-				exec_cmd_JOIN(*cmd_msg);
-				break;
-			case KICK:
-				exec_cmd_KICK(*cmd_msg);
-				break;
-			case KNOCK:
-				exec_cmd_KNOCK(*cmd_msg);
-				break;
-			case LINKS:
-				exec_cmd_LINKS(*cmd_msg);
-				break;
-			case LIST:
-				exec_cmd_LIST(*cmd_msg);
-				break;
-			case LUSERS:
-				exec_cmd_LUSERS(*cmd_msg);
-				break;
-			case MAP:
-				exec_cmd_MAP(*cmd_msg);
-				break;
-			case MODE:
-				exec_cmd_MODE(*cmd_msg);
-				break;
-			case MOTD:
-				exec_cmd_MOTD(*cmd_msg);
-				break;
-			case NAMES:
-				exec_cmd_NAMES(*cmd_msg);
-				break;
-			case NICK:
-				exec_cmd_NICK(*cmd_msg);
-				break;
-			case NOTICE:
-				exec_cmd_NOTICE(*cmd_msg);
-				break;
-			case PART:
-				exec_cmd_PART(*cmd_msg);
-				break;
-			case PASS:
-				exec_cmd_PASS(*cmd_msg);
-				break;
-			case PING:
-				exec_cmd_PING(*cmd_msg);
-				break;
-			case PONG:
-				exec_cmd_PONG(*cmd_msg);
-				break;
-			case PRIVMSG:
-				exec_cmd_PRIVMSG(*cmd_msg);
-				break;
-			case QUIT:
-				exec_cmd_QUIT(*cmd_msg);
-				break;
-			case RULES:
-				exec_cmd_RULES(*cmd_msg);
-				break;
-			case SETNAME:
-				exec_cmd_SETNAME(*cmd_msg);
-				break;
-			case SILENCE:
-				exec_cmd_SILENCE(*cmd_msg);
-				break;
-			case STATS:
-				exec_cmd_STATS(*cmd_msg);
-				break;
-			case USER:
-				exec_cmd_USER(*cmd_msg);
-				break;
-			case VERSION:
-				exec_cmd_VERSION(*cmd_msg);
-				break;
-			case WHO:
-				exec_cmd_WHO(*cmd_msg);
-				break;
-			case WHOIS:
-				exec_cmd_WHOIS(*cmd_msg);
-				break;
-			case WHOWAS:
-				exec_cmd_WHOWAS(*cmd_msg);
-				break;
-			default:
-				break;
-		}
+
+
 		delete cmd_msg;
 		received_msg_queue.pop();
 	}
