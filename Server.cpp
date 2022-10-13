@@ -153,7 +153,7 @@ void	Server::parse_messages(int const &fd, char *buf)
 	int		idx;
 	std::map<int, Client>::iterator	it;
 	std::string	sender = "";
-	//
+
 	// if fd matches a stored fd, get the name from map and assign it to sender 
 	for (it = client_list.begin(); it != client_list.end(); it++)
 	{
@@ -164,7 +164,6 @@ void	Server::parse_messages(int const &fd, char *buf)
 			sender = it->second.get_nickname();
 		}
 	}
-
 	// std::cout << "msg to parse: " << _raw << std::endl;
 	line = strtok_r(buf, "\n", &end_str);
 	while (line != NULL)
@@ -174,10 +173,9 @@ void	Server::parse_messages(int const &fd, char *buf)
 		char *end_token;
 		std::cout << "line: " << line << std::endl;
 		sgmt = strtok_r(line, " \r\n", &end_token);
-		idx = -1;
+		idx = 0;
 		while (sgmt != NULL)
 		{
-			idx++;
 			// need to do other checks etc
 			if (idx == 0) // need to fix for every line
 				temp->set_cmd(sgmt);
@@ -185,13 +183,23 @@ void	Server::parse_messages(int const &fd, char *buf)
 			{
 				temp->set_arg(sgmt);
 			}
-			std::cout << idx << ":#\tsep sgmt: " << sgmt << std::endl;
+			// std::cout << idx << ":#\tsep sgmt: " << sgmt << std::endl;
 			sgmt = strtok_r(NULL, " \r\n", &end_token);
+			idx++;
 		}
 		temp->set_sender(sender);
 		received_msg_queue.push(temp);
 		line = strtok_r(NULL, " \r\n", &end_str);
 	}
+}
+
+void	Server::push_msg(int fd, std::string text)
+{
+	std::string	full;
+
+	full = text + "\r\n";
+	Message msg(fd, full);
+	send_msg_queue.push(msg);
 }
 
 void	Server::add_new_client(int newfd, int *fd_count)
@@ -269,14 +277,15 @@ void	Server::send_channel_msg(Message const &msg, Channel const &channel)
 
 void Server::match_cmd(Message &msg)
 {
-	int const size = 2;
-	std::string cmds[] = {"NICK", "LUSERS"};
-	void (Server::*func_pointers[size])(Message &cmd_msg) = {
-		&Server::exec_cmd_NICK,
-		&Server::exec_cmd_LUSERS
+	int const size = 4;
+	std::string cmds[] = {"JOIN", "LUSERS", "MOTD", "NICK"};
+	void (Server::*func_pointers[size])(Message &msg) = {
+		&Server::exec_cmd_JOIN,
+		&Server::exec_cmd_LUSERS,
+		&Server::exec_cmd_MOTD,
+		&Server::exec_cmd_NICK
 	};
-
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < size; i++)
 	{
 		if (cmds[i] == msg.get_cmd())
 			(this->*func_pointers[i])(msg);
@@ -285,7 +294,6 @@ void Server::match_cmd(Message &msg)
 
 int	Server::exec_cmds()
 {
-
 	for (int i = 0; i < (int)received_msg_queue.size(); i++)
 	{
 		Message *cmd_msg = received_msg_queue.front();

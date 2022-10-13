@@ -74,6 +74,7 @@ class Server
 		void    init_listener(void);
 		void    start_server(void);
 		int		exec_cmds(void);
+		void	push_msg(int fd, std::string text);
 
 	private:
 
