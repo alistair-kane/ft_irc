@@ -179,7 +179,10 @@ void	Server::exec_cmd_PASS(Message &cmd_msg)
 
 void	Server::exec_cmd_PING(Message &cmd_msg)
 {
-	(void)cmd_msg;
+	if (cmd_msg.get_arg() != "")
+		push_msg(cmd_msg.get_fd(), ("PONG " + _hostname + " :" + cmd_msg.get_arg()));
+	else
+		push_msg(cmd_msg.get_fd(), ("409 " + cmd_msg.get_sender() + " :No origin specified"));
 	return ;
 }
 

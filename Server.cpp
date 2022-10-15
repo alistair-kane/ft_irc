@@ -277,13 +277,15 @@ void	Server::send_channel_msg(Message const &msg, Channel const &channel)
 
 void Server::match_cmd(Message &msg)
 {
-	int const size = 4;
-	std::string cmds[] = {"JOIN", "LUSERS", "MOTD", "NICK"};
+	int const size = 6;
+	std::string cmds[] = {"JOIN", "LUSERS", "MOTD", "NICK", "PING", "PONG"};
 	void (Server::*func_pointers[size])(Message &msg) = {
 		&Server::exec_cmd_JOIN,
 		&Server::exec_cmd_LUSERS,
 		&Server::exec_cmd_MOTD,
-		&Server::exec_cmd_NICK
+		&Server::exec_cmd_NICK,
+		&Server::exec_cmd_PING,
+		&Server::exec_cmd_PONG
 	};
 	for (int i = 0; i < size; i++)
 	{
