@@ -46,6 +46,11 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 	// if channel exists add user to it
 	channel->second.add_member(fd, nick);
 
+	std::string join_channel_msg = client_to_add->get_nickname() + " joined " + channel_name;
+	Message msg(join_channel_msg);
+	msg.set_receiver(channel_name);
+	send_msg_queue.push(msg);
+
 	return ;
 }
 

@@ -10,6 +10,7 @@ class Message
 {
 	public:
 
+		Message(std::string input);
 		Message(int const & fd);
 		Message(int const & fd, std::string input);
 		Message(Message const & other);
@@ -20,6 +21,7 @@ class Message
 		std::string const	&get_cmd(void) const;
 		std::string const 	&get_arg(void) const;
 		std::string const	&get_sender(void) const;
+		void				set_receiver(std::string receiver);
 		// std::string const & print_message(void) const;
 		int const 			&get_fd(void) const;
 		// int get_len(void) const;
