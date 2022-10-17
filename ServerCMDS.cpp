@@ -41,11 +41,21 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 	{
 		channel_list.insert(std::make_pair(channel_name, Channel(channel_name, fd)));
 		channel = channel_list.find(channel_name);
+		channel->second.add_operator(fd);
+
+		// Create initial channel message
+		std::string join_channel_msg = client_to_add->get_nickname() + " created the channel " + channel_name;
+		Message msg(join_channel_msg);
+		msg.set_receiver(channel_name);
+		send_msg_queue.push(msg);
+
+		return ;
 	}
 
 	// if channel exists add user to it
 	channel->second.add_member(fd, nick);
 
+	// send message to the channel that user joined
 	std::string join_channel_msg = client_to_add->get_nickname() + " joined " + channel_name;
 	Message msg(join_channel_msg);
 	msg.set_receiver(channel_name);
@@ -235,8 +245,51 @@ void	Server::exec_cmd_STATS(Message &cmd_msg)
 
 void	Server::exec_cmd_USER(Message &cmd_msg)
 {
-	(void)cmd_msg;
-	return ;
+	std::string	arg = cmd_msg.get_arg();
+	int			fd = cmd_msg.get_fd();
+	if (arg.empty())
+	{
+		push_msg(fd, "431 : No username entered");
+		return ;
+	}
+	std::map<int, Client>::iterator	it;
+
+	// check if the param of user is already contained in the client list
+	//		if yes - return the error
+	for (it = client_list.begin(); it != client_list.end(); it++)
+	{
+		std::string	current = it->second.get_username();
+		if (current == arg)
+		{
+			// if the nickname is equal to the arg, and the fd matches, change it
+			if (it->first == fd)
+			{
+				it->second.set_username(arg);
+				std::string full = ":" + current + "! __ @ __ NICK " + it->second.get_username() + "\r\n";
+				Message msg(fd, full);
+				// Channel chan()
+				// send_channel_msg(msg, );
+
+			}
+			else
+				push_msg(fd, ("433 " + current + " " + arg + " :Nickname already taken"));
+			return ;
+		}
+	}
+	// if not, create a new instance of the client class and add to the client list map
+	// along with the fd of the socket 
+	Client new_client(fd, arg);
+	client_list.insert(std::make_pair(fd, new_client));
+	cmd_msg.set_sender(new_client.get_username());
+	// send a message back?
+	push_msg(fd, ("001 " + new_client.get_username() + " :Hi, welcome to IRC"));
+	push_msg(fd, ("002 " + new_client.get_username() + " :Your host is " +
+		_hostname + ", running version ALISTIM-v0.01"));
+	// could generate a timestamp when server class initialized to use here
+	push_msg(fd, ("003 " + new_client.get_username() + " :This server was created 2022AD"));
+	push_msg(fd, ("004 " + new_client.get_username() + " " + _hostname + "ALISTIM-v0.01 o o"));
+	exec_cmd_LUSERS(cmd_msg);
+	exec_cmd_MOTD(cmd_msg);
 }
 
 void	Server::exec_cmd_VERSION(Message &cmd_msg)

@@ -25,9 +25,24 @@ Client & Client::operator=(Client const & rhs)
 Client::~Client(void)
 {}
 
+std::string const &Client::get_nickname(void) const
+{
+	return (this->nickname);
+}
+
 void	Client::set_nickname(std::string const & nickname)
 {
 	this->nickname = nickname;
+}
+
+std::string const &Client::get_username(void) const
+{
+	return (this->username);
+}
+
+void	Client::set_username(std::string const & username)
+{
+	this->username = username;
 }
 
 bool Client::operator<(Client const & rhs) const
@@ -35,10 +50,6 @@ bool Client::operator<(Client const & rhs) const
 	return (this->nickname < rhs.nickname);
 }
 
-std::string const & Client::get_nickname(void) const
-{
-	return (this->nickname);
-}
 
 void	Client::clear_message_buffer(void)
 {

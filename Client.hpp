@@ -16,8 +16,11 @@ class Client
 
 		bool 		operator<(const Client & rhs) const;
 
-		void		set_nickname(std::string const & nickname);
-		std::string const & get_nickname(void) const;
+		std::string const	&get_nickname(void) const;
+		void				set_nickname(std::string const &nickname);
+		std::string const	&get_username(void) const;
+		void				set_username(std::string const &username);
+
 		void		clear_message_buffer(void);
 		void		append_message_buffer(char const * input);
 		void		append_message_buffer(std::string const & input);
