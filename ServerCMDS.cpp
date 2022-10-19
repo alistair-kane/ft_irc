@@ -188,7 +188,10 @@ void	Server::exec_cmd_PART(Message &cmd_msg)
 
 void	Server::exec_cmd_PASS(Message &cmd_msg)
 {
-	(void)cmd_msg;
+	if (cmd_msg.get_arg() == "")
+		reply_461(cmd_msg.get_fd(), "PASS", cmd_msg.get_sender());
+	else if (cmd_msg.get_arg() == _password)
+		
 	return ;
 }
 

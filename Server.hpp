@@ -114,6 +114,7 @@ class Server
 		// void					store_message(int const & fd, char const * input);
 		// void					remove_message(int const & fd);
 		void					parse_messages(int const &fd, char *buf);
+		void					handle_registration(void);
 		void					match_cmd(Message &msg);
 		// exec_funcs				match_cmd(std::string cmd);
 
@@ -122,8 +123,8 @@ class Server
 		void	send_priv_msg(Message const &msg);
 		void	send_channel_msg(Message const &msg, Channel const &channel);
 
-		void					print_error(const int &client_fd, std::string error_msg);
-
+		void	print_error(const int &client_fd, std::string error_msg);
+		void	reply_461(int fd, std::string cmd, std::string nick);
 		// Server command functions
 		void	exec_cmd_ADMIN(Message &cmd_msg);
 		void	exec_cmd_AWAY(Message &cmd_msg);
