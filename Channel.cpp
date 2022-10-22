@@ -9,6 +9,11 @@ Channel::Channel(std::string const &channel_name, int const & fd) :channel_name(
 Channel::~Channel(void)
 {}
 
+std::map<int, std::string> const &Channel::get_member_list(void) const
+{
+	return (this->member_list);
+}
+
 void Channel::add_member(int const &fd, std::string const &nick)
 {
 	member_list.insert(std::make_pair(fd, nick));
@@ -17,6 +22,11 @@ void Channel::add_member(int const &fd, std::string const &nick)
 void	Channel::remove_member(int const &fd)
 {
 	member_list.erase(fd);
+}
+
+std::set<int> const &Channel::get_operator_list(void) const
+{
+	return (this->operator_list);
 }
 
 void	Channel::add_operator(int const &fd)
@@ -39,10 +49,6 @@ void	Channel::unban_user(std::string const & nick)
 	ban_list.erase(nick);
 }
 
-std::map<int, std::string> const &Channel::get_member_list(void) const
-{
-	return (this->member_list);
-}
 
 std::set<std::string> const	&Channel::get_ban_list(void) const
 {

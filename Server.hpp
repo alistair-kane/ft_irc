@@ -36,6 +36,7 @@ class Server
 		{
 			ADMIN,
 			AWAY,
+			BAN,
 			INVITE,
 			JOIN,
 			KICK,
@@ -128,6 +129,7 @@ class Server
 		// Server command functions
 		void	exec_cmd_ADMIN(Message &cmd_msg);
 		void	exec_cmd_AWAY(Message &cmd_msg);
+		void	exec_cmd_BAN(Message &cmd_msg);
 		void	exec_cmd_INVITE(Message &cmd_msg);
 		void	exec_cmd_JOIN(Message &cmd_msg);
 		void	exec_cmd_KICK(Message &cmd_msg);

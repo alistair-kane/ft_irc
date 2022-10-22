@@ -15,6 +15,7 @@ public:
 		void								add_member(int const &fd, std::string const &nick);
 		void								remove_member(int const & fd);
 
+		std::set<int> const &get_operator_list(void) const;
 		void				add_operator(int const & fd);
 		void				remove_operator(int const & fd);
 
