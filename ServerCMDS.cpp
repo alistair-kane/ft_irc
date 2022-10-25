@@ -12,6 +12,44 @@ void	Server::exec_cmd_AWAY(Message &cmd_msg)
 	return ;
 }
 
+void	Server::exec_cmd_BAN(Message &cmd_msg)
+{
+	// check if user is operator by iterating over operator list and check if msg fd is in that list
+	// get fd of requesting user
+	int const request_fd = cmd_msg.get_fd();
+
+	// get channel the user should be banned from
+	std::string	const &channel_name = cmd_msg.get_arg();
+	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
+
+	// get the list of operators of that channel
+	std::set<int> operator_list = channel->second.get_operator_list();
+	std::set<int>::iterator iter;
+	bool is_operator = false;
+   
+	// Loop over the operator_list
+	for (iter = operator_list.begin(); iter != operator_list.end(); iter++)
+	{
+		if (request_fd == *iter)
+		{
+			is_operator = true;
+		}
+	}
+
+	if (is_operator)
+	{
+		// find user to ban in member_list from msg_arg
+
+		// if user to ban is not in member_list then throw error user not found
+
+		// if user to ban is in member_list remove from member_list and create message that user was banned
+
+		// add user to ban list 
+	}
+
+	return ;
+}
+
 void	Server::exec_cmd_INVITE(Message &cmd_msg)
 {
 	(void)cmd_msg;
@@ -34,7 +72,28 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 	// get nickname of client
 	std::string nick = client_to_add->get_nickname();
 
+
+
 	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
+
+	std::set<std::string> ban_list = channel->second.get_ban_list();
+	std::set<std::string>::iterator iter;
+	bool is_banned = false;
+   
+	// Loop over the operator_list
+	for (iter = ban_list.begin(); iter != ban_list.end(); iter++)
+	{
+		if (nick == *iter)
+		{
+			is_banned = true;
+		}
+	}
+
+	if (is_banned)
+	{
+		// throw error that user is banned
+		return ;
+	}
 
 	// if channel doesn't exist create one with caller as operator/channel_owner
 	if (channel == channel_list.end())
@@ -66,7 +125,37 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 
 void	Server::exec_cmd_KICK(Message &cmd_msg)
 {
-	(void)cmd_msg;
+	// check if user is operator by iterating over operator list and check if msg fd is in that list
+	// get fd of requesting user
+	int const request_fd = cmd_msg.get_fd();
+
+	// get channel the user should be kicked from
+	std::string	const &channel_name = cmd_msg.get_arg();
+	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
+
+	// get the list of operators of that channel
+	std::set<int> operator_list = channel->second.get_operator_list();
+	std::set<int>::iterator iter;
+	bool is_operator = false;
+   
+	// Loop over the operator_list
+	for (iter = operator_list.begin(); iter != operator_list.end(); iter++)
+	{
+		if (request_fd == *iter)
+		{
+			is_operator = true;
+		}
+	}
+
+	if (is_operator)
+	{
+		// find user to kick in member_list from msg_arg
+
+		// if user to kick is not in member_list then throw error user not found
+
+		// if user to kick is in member_list remove from member_list and create message that user was kicked
+	}
+
 	return ;
 }
 
