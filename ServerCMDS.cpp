@@ -19,7 +19,7 @@ void	Server::exec_cmd_BAN(Message &cmd_msg)
 	int const request_fd = cmd_msg.get_fd();
 
 	// get channel the user should be banned from
-	std::string	const &channel_name = cmd_msg.get_arg();
+	std::string	const &channel_name = cmd_msg.get_arg(0);
 	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
 
 	// get the list of operators of that channel
@@ -130,7 +130,7 @@ void	Server::exec_cmd_KICK(Message &cmd_msg)
 	int const request_fd = cmd_msg.get_fd();
 
 	// get channel the user should be kicked from
-	std::string	const &channel_name = cmd_msg.get_arg();
+	std::string	const &channel_name = cmd_msg.get_arg(0);
 	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
 
 	// get the list of operators of that channel
