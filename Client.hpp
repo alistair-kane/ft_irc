@@ -16,6 +16,8 @@ class Client
 
 		bool 		operator<(const Client & rhs) const;
 
+		// bool				get_auth(void) const;
+		// void				set_auth(void);
 		std::string const	&get_nickname(void) const;
 		void				set_nickname(std::string const &nickname);
 		std::string const	&get_username(void) const;
@@ -27,7 +29,8 @@ class Client
 		std::string const & get_message_buffer(void) const;
 
 	private:
-		int	fd;
+		int			fd;
+		// bool		auth;
 		std::string	nickname;
 		std::string	username;
 		std::string	message_buffer;

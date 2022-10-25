@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <cstring>
+#include <vector>
 
 // should be renamed to messages?
 
@@ -19,14 +20,14 @@ class Message
 
 		void				parse(void);
 		std::string const	&get_cmd(void) const;
-		std::string const 	&get_arg(void) const;
+		std::string const 	&get_arg(int idx) const;
 		std::string const	&get_sender(void) const;
 		void				set_receiver(std::string receiver);
 		// std::string const & print_message(void) const;
 		int const 			&get_fd(void) const;
 		// int get_len(void) const;
 		void				set_cmd(std::string cmd);
-		void				set_arg(std::string _arg);
+		void				set_arg(int idx, std::string _arg);
 		void				set_sender(std::string _sender);
 		const char 			*raw_msg(void) const;
 		std::string const 	&get_receiver(void) const;
@@ -34,13 +35,13 @@ class Message
 		size_t				msg_len(void) const;
 
 	private:
-		std::string	prefix;
-		std::string	postfix;
-		std::string	CMD;
-		std::string	sender;
-		std::string	receiver;
-		std::string	_arg;
-		int 		_fd;
-		std::string _raw;
-		bool		_legit;
+		std::string					prefix;
+		std::string					postfix;
+		std::string					CMD;
+		std::string					sender;
+		std::string					receiver;
+		std::vector<std::string>	_args;
+		int							_fd;
+		std::string					_raw;
+		bool						_legit;
 };

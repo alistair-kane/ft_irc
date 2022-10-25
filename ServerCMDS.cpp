@@ -24,7 +24,7 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 	int	const fd = cmd_msg.get_fd();
 
 	// get the channel name from the argument
-	std::string	const &channel_name = cmd_msg.get_arg();
+	std::string	const &channel_name = cmd_msg.get_arg(0);
 
 	// get client who wants to join channel by fd
 	Client *client_to_add = get_client(fd);
@@ -127,14 +127,15 @@ void	Server::exec_cmd_NAMES(Message &cmd_msg)
 // !!!! need to handle changing the nickname
 void	Server::exec_cmd_NICK(Message &cmd_msg)
 {
-	std::string	arg = cmd_msg.get_arg();
+	std::string	arg = cmd_msg.get_arg(0);
 	int			fd = cmd_msg.get_fd();
+
 	if (arg.empty())
 	{
 		push_msg(fd, "431 : No nickname entered");
 		return ;
 	}
-	std::map<int, Client>::iterator	it;
+	std::map<int, Client>::iterator	it;	
 
 	// check if the param of nick is already contained in the client list
 	//		if yes - return the error
@@ -158,20 +159,20 @@ void	Server::exec_cmd_NICK(Message &cmd_msg)
 			return ;
 		}
 	}
-	// if not, create a new instance of the client class and add to the client list map
-	// along with the fd of the socket 
-	Client new_client(fd, arg);
-	client_list.insert(std::make_pair(fd, new_client));
-	cmd_msg.set_sender(new_client.get_nickname());
-	// send a message back?
-	push_msg(fd, ("001 " + new_client.get_nickname() + " :Hi, welcome to IRC"));
-	push_msg(fd, ("002 " + new_client.get_nickname() + " :Your host is " +
-		_hostname + ", running version ALISTIM-v0.01"));
-	// could generate a timestamp when server class initialized to use here
-	push_msg(fd, ("003 " + new_client.get_nickname() + " :This server was created 2022AD"));
-	push_msg(fd, ("004 " + new_client.get_nickname() + " " + _hostname + "ALISTIM-v0.01 o o"));
-	exec_cmd_LUSERS(cmd_msg);
-	exec_cmd_MOTD(cmd_msg);
+	// // if not, create a new instance of the client class and add to the client list map
+	// // along with the fd of the socket 
+	// Client new_client(fd, arg);
+	// client_list.insert(std::make_pair(fd, new_client));
+	// cmd_msg.set_sender(new_client.get_nickname());
+	// // send a message back?
+	// push_msg(fd, ("001 " + new_client.get_nickname() + " :Hi, welcome to IRC"));
+	// push_msg(fd, ("002 " + new_client.get_nickname() + " :Your host is " +
+	// 	_hostname + ", running version ALISTIM-v0.01"));
+	// // could generate a timestamp when server class initialized to use here
+	// push_msg(fd, ("003 " + new_client.get_nickname() + " :This server was created 2022AD"));
+	// push_msg(fd, ("004 " + new_client.get_nickname() + " " + _hostname + "ALISTIM-v0.01 o o"));
+	// exec_cmd_LUSERS(cmd_msg);
+	// exec_cmd_MOTD(cmd_msg);
 }
 
 void	Server::exec_cmd_NOTICE(Message &cmd_msg)
@@ -188,17 +189,17 @@ void	Server::exec_cmd_PART(Message &cmd_msg)
 
 void	Server::exec_cmd_PASS(Message &cmd_msg)
 {
-	if (cmd_msg.get_arg() == "")
+	if (cmd_msg.get_arg(0) == "")
 		reply_461(cmd_msg.get_fd(), "PASS", cmd_msg.get_sender());
-	else if (cmd_msg.get_arg() == _password)
+	else if (cmd_msg.get_arg(0) == _password)
 		
 	return ;
 }
 
 void	Server::exec_cmd_PING(Message &cmd_msg)
 {
-	if (cmd_msg.get_arg() != "")
-		push_msg(cmd_msg.get_fd(), ("PONG " + _hostname + " :" + cmd_msg.get_arg()));
+	if (cmd_msg.get_arg(0) != "")
+		push_msg(cmd_msg.get_fd(), ("PONG " + _hostname + " :" + cmd_msg.get_arg(0)));
 	else
 		push_msg(cmd_msg.get_fd(), ("409 " + cmd_msg.get_sender() + " :No origin specified"));
 	return ;
@@ -248,7 +249,7 @@ void	Server::exec_cmd_STATS(Message &cmd_msg)
 
 void	Server::exec_cmd_USER(Message &cmd_msg)
 {
-	std::string	arg = cmd_msg.get_arg();
+	std::string	arg = cmd_msg.get_arg(0);
 	int			fd = cmd_msg.get_fd();
 	if (arg.empty())
 	{

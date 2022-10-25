@@ -24,7 +24,7 @@ Message::Message(Message const & other)
 Message const & Message::operator=(Message const & rhs)
 {
 	this->CMD = rhs.CMD;
-	this->_arg = rhs._arg;
+	this->_args = rhs._args;
 	this->_raw = rhs._raw;
 	return (*this);
 }
@@ -37,9 +37,9 @@ std::string const & Message::get_cmd(void) const
 	return (this->CMD);
 }
 
-std::string const & Message::get_arg(void) const
+std::string const & Message::get_arg(int idx) const
 {
-	return (this->_arg);
+	return (this->_args[idx]);
 }
 
 std::string const & Message::get_sender(void) const
@@ -68,9 +68,9 @@ void	Message::set_cmd(std::string cmd)
 	this->CMD = cmd;
 }
 
-void	Message::set_arg(std::string arg)
+void	Message::set_arg(int idx, std::string arg)
 {
-	this->_arg = arg;
+	this->_args[idx - 1] = arg;
 }
 
 void	Message::set_sender(std::string sender)

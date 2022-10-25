@@ -96,6 +96,9 @@ class Server
 		// need to create channel class?
 		// std::map<std::string, Channel>	channel_list;
 		struct pollfd			clients[64];
+		int						reg_clients[64];
+		const size_t 			numElements = sizeof(reg_clients) / sizeof(reg_clients[0]);
+
 		int						sockfd;
 		struct sockaddr_storage	client_addr;
 		socklen_t				client_addr_len;
@@ -125,6 +128,12 @@ class Server
 
 		void	print_error(const int &client_fd, std::string error_msg);
 		void	reply_461(int fd, std::string cmd, std::string nick);
+		// void	disconnect(int fd, std::string msg);
+		Message	&reg_parser(Message *msg, int &fd, std::string &cmd, std::string &arg, std::string &sender);
+		bool	check_nickname(std::string arg);
+		
+
+
 		// Server command functions
 		void	exec_cmd_ADMIN(Message &cmd_msg);
 		void	exec_cmd_AWAY(Message &cmd_msg);
