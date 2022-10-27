@@ -10,6 +10,9 @@ Message::Message(int const & fd, std::string input) : _fd(fd), _raw(input)
 		// this->_legit = true;
 }
 
+Message::Message(std::string input) : _raw(input)
+{}
+
 Message::Message(Message const & other)
 {
 	this->CMD = other.CMD;
@@ -37,9 +40,15 @@ std::string const & Message::get_cmd(void) const
 	return (this->CMD);
 }
 
-std::string const & Message::get_arg(int idx) const
+std::string Message::get_arg(int idx) const
 {
-	return (this->_args[idx]);
+	// std::cout << "getting idx #" << idx << "\n";
+	if (_args.empty())
+	{
+		std::cout << "EMPTY!" << std::endl;
+		return (std::string());
+	}
+	return (_args.at(idx));
 }
 
 std::string const & Message::get_sender(void) const
@@ -68,9 +77,16 @@ void	Message::set_cmd(std::string cmd)
 	this->CMD = cmd;
 }
 
-void	Message::set_arg(int idx, std::string arg)
+void	Message::add_arg(char *arg)
 {
-	this->_args[idx - 1] = arg;
+	std::string temp;
+
+	if (arg == NULL)
+		temp = std::string();
+	else
+		temp = std::string(arg);
+	std::cout << "added arg: [" << arg << "]" << std::endl;
+	_args.push_back(arg);
 }
 
 void	Message::set_sender(std::string sender)
@@ -93,7 +109,7 @@ std::string const & Message::get_receiver(void) const
 	return (this->receiver);
 }
 
-void	set_receiver(std::string receiver)
+void	Message::set_receiver(std::string receiver)
 {
 	receiver = receiver;
 }

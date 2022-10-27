@@ -81,7 +81,7 @@ class Server
 
 		struct sockaddr_in		_server_address;
 		int						_port;
-		std::string				_password; // could go in conf file later?
+		std::string				_password = "test"; // could go in conf file later?
 		std::string				_hostname;
 
 		//place to store the clients
@@ -97,8 +97,9 @@ class Server
 		// need to create channel class?
 		// std::map<std::string, Channel>	channel_list;
 		struct pollfd			clients[64];
-		int						reg_clients[64];
-		const size_t 			numElements = sizeof(reg_clients) / sizeof(reg_clients[0]);
+		std::vector<int>		auth_clients;
+		std::vector<int>		reg_clients;
+		// int						reg_count;
 
 		int						sockfd;
 		struct sockaddr_storage	client_addr;
@@ -118,6 +119,8 @@ class Server
 		// void					store_message(int const & fd, char const * input);
 		// void					remove_message(int const & fd);
 		void					parse_messages(int const &fd, char *buf);
+		bool					handle_pass(void);
+		void					register_client(Message &msg, int fd, std::string nick);
 		void					handle_registration(void);
 		void					match_cmd(Message &msg);
 		// exec_funcs				match_cmd(std::string cmd);

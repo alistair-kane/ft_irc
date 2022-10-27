@@ -97,17 +97,19 @@ void    Server::start_server(void)
 				else // If not the listener, we're just a regular client (already accepted in previous condition)
 				{
 					int n_bytes = recv(clients[i].fd, buf, 256 - 1, 0);
-					std::cout << "n of bytes recieved: [" << n_bytes << "]" << std::endl;
+					// std::cout << "n of bytes recieved: [" << n_bytes << "]" << std::endl;
 					int sender_fd = clients[i].fd;
 
 					if (n_bytes <= 0)
 					{
 						if (n_bytes == 0) // connection is closed
 						{
+
 							std::cout << "pollserver: socket "
 								<< sender_fd
 								<< " hung up"
 								<< std::endl;
+							client_list.erase(sender_fd); // remove them from the client list
 						}
 						else
 						{
@@ -123,9 +125,9 @@ void    Server::start_server(void)
 						// otherwise the registration handler must be invoked
 						parse_messages(clients[i].fd, buf);
 
-						std::cout << "NUM ELEMENTS: [" << numElements << std::endl;
-						int *reg_client_end = reg_clients + numElements;
-						if (std::find(reg_clients, reg_client_end, clients[i].fd) != reg_client_end)
+						// std::cout << "NUM ELEMENTS: [" << numElements << "]" << std::endl;
+						// int *reg_client_end = reg_clients + numElements;
+						if (std::find(reg_clients.begin(), reg_clients.end(), clients[i].fd) != reg_clients.end())
 						{
 							// client is already registered
 							exec_cmds();
@@ -176,14 +178,14 @@ void	Server::parse_messages(int const &fd, char *buf)
 		}
 	}
 	// std::cout << "msg to parse: " << _raw << std::endl;
-	line = strtok_r(buf, "\n", &end_str);
+	line = strtok_r(buf, "\r\n", &end_str);
 	while (line != NULL)
 	{
 		Message *temp = new Message(fd);
 		char *sgmt;
 		char *end_token;
-		std::cout << "line: " << line << std::endl;
-		sgmt = strtok_r(line, " \r\n", &end_token);
+		std::cout << "line [" << line << "]" << std::endl;
+		sgmt = strtok_r(line, " ", &end_token);
 		idx = 0;
 		while (sgmt != NULL)
 		{
@@ -192,15 +194,15 @@ void	Server::parse_messages(int const &fd, char *buf)
 				temp->set_cmd(sgmt);
 			if (idx >= 1)
 			{
-				temp->set_arg(idx, sgmt);
+				temp->add_arg(sgmt);
 			}
-			// std::cout << idx << ":#\tsep sgmt: " << sgmt << std::endl;
-			sgmt = strtok_r(NULL, " \r\n", &end_token);
+			// std::cout << idx << ":\t[" << sgmt << "]" << std::endl;
+			sgmt = strtok_r(NULL, " ", &end_token);
 			idx++;
 		}
 		temp->set_sender(sender);
 		received_msg_queue.push(temp);
-		line = strtok_r(NULL, " \r\n", &end_str);
+		line = strtok_r(NULL, "\r\n", &end_str);
 	}
 }
 
@@ -256,7 +258,7 @@ void	Server::send_priv_msg(Message const &msg)
 {
 	ssize_t bytes_sent = 0;
 
-	std::cout << "SENDING: " << msg.raw_msg() << std::endl;
+	std::cout << "SENDING: " << msg.raw_msg();
 	bytes_sent = send(msg.get_fd(), msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
 	if (bytes_sent < (ssize_t)msg.msg_len())
 	{
@@ -289,12 +291,66 @@ void	Server::send_channel_msg(Message const &msg, Channel const &channel)
 Message &Server::reg_parser(Message *msg, int &fd, std::string &cmd, std::string &arg, std::string &sender) 
 {
 	Message &msg_copy = *msg;
-	delete msg;
+
 	fd = msg_copy.get_fd();
 	cmd = msg_copy.get_cmd();
 	arg = msg_copy.get_arg(0);
 	sender = msg_copy.get_sender();
+	// delete msg;
 	return (msg_copy);
+}
+
+bool Server::handle_pass(void)
+{
+	int			fd;
+	std::string	cmd;
+	std::string	arg;
+	std::string sender;
+
+	// check if the user has already entered correct pass, if not go use pass handler
+	if (std::find(auth_clients.begin(), auth_clients.end(), fd) != auth_clients.end())
+		return true;
+	for (int i = 0; i < (int)received_msg_queue.size(); i++)
+	{
+		reg_parser(received_msg_queue.front(), fd, cmd, arg, sender);
+		if (cmd == "PASS")
+		{
+			if (arg == "")
+				reply_461(fd, "PASS", sender); // not enough args
+			// password must be set in config file!!!!
+			else if (arg == _password)
+			{
+				std::cout << "### User authenticated ###\n";
+				auth_clients.push_back(fd);
+				received_msg_queue.pop();
+				return true;
+			}
+			else
+				push_msg(fd, "464 :Password incorrect");
+		}
+		received_msg_queue.pop();
+	}
+	return false;
+}
+
+void Server::register_client(Message &msg, int fd, std::string nick)
+{
+	// if both nick and user is set proceed to client registration
+	std::cout << "successful registration" << std::endl;
+	Client new_client(fd, nick);
+	client_list.insert(std::make_pair(fd, new_client));
+
+	msg.set_sender(nick);
+	// send a message back?
+	push_msg(fd, ("001 " + nick + " :Hi, welcome to IRC"));
+	push_msg(fd, ("002 " + nick + " :Your host is " +
+		_hostname + ", running version ALISTIM-v0.01"));
+	// could generate a timestamp when server class initialized to use here
+	push_msg(fd, ("003 " + nick + " :This server was created 2022AD"));
+	push_msg(fd, ("004 " + nick + " " + _hostname + "ALISTIM-v0.01 o o"));
+	exec_cmd_LUSERS(msg);
+	exec_cmd_MOTD(msg);
+	reg_clients.push_back(fd);
 }
 
 void Server::handle_registration(void)
@@ -302,37 +358,17 @@ void Server::handle_registration(void)
 	std::string nick;
 	std::string user;
 	std::string realname;
-	
 	int			fd;
 	std::string	cmd;
 	std::string	arg;
 	std::string sender;
-
-	reg_parser(received_msg_queue.front(), fd, cmd, arg, sender);
 	
-	// Message *msg = received_msg_queue.front();
-	// Message msg_copy = *msg;
-	// delete msg;
-	// std::string cmd = msg_copy.get_cmd();
-	// std::string arg = msg_copy.get_arg(0);
-	// int			fd = msg_copy.get_fd();
-
-	// password must be set in config file!!!!
-	if (cmd == "PASS")
+	if (handle_pass() == true)
 	{
-		if (arg == "")
-			reply_461(fd, "PASS", sender); // not enough args
-		else if (arg == _password)
+		int q_size = received_msg_queue.size();
+		for (int i = 0; i < q_size; i++)
 		{
-			received_msg_queue.pop();
-			reg_parser(received_msg_queue.front(), fd, cmd, arg, sender);
-
-			// Message *msg = received_msg_queue.front();
-			// Message msg_copy = *msg;
-			// delete msg;
-			// std::string cmd = msg_copy.get_cmd();
-			// std::string arg = msg_copy.get_arg(0);
-			// int			fd = msg_copy.get_fd();
+			Message &msg = reg_parser(received_msg_queue.front(), fd, cmd, arg, sender);
 
 			if (cmd == "NICK")
 			{
@@ -346,21 +382,6 @@ void Server::handle_registration(void)
 				else
 					nick = arg;
 			}
-			else if (cmd == "QUIT")
-			{
-				std::cout << "Client quit" << std::endl;
-				return ;
-			}
-
-			received_msg_queue.pop();
-			Message &msg = reg_parser(received_msg_queue.front(), fd, cmd, arg, sender);
-
-			// Message *cmd_msg = received_msg_queue.front();
-			// Message msg_copy = *msg;
-			// delete msg;
-			// std::string cmd = msg_copy.get_cmd();
-			// std::string arg = msg_copy.get_arg(0);
-			// int			fd = msg_copy.get_fd();
 			if (cmd == "USER")
 			{
 				if (msg.get_arg(3).empty()) // probably wrong, need max filled idx or some bs
@@ -371,32 +392,16 @@ void Server::handle_registration(void)
 				user = arg;
 				realname = msg.get_arg(3);
 			}
-			else if (cmd == "QUIT")
+			if (cmd == "QUIT")
 			{
 				std::cout << "Client quit" << std::endl;
 				return ;
 			}
-
-			// if both nick and user is set proceed to client registration
 			if (!nick.empty() && !user.empty())
-			{
-				Client new_client(fd, nick);
-				client_list.insert(std::make_pair(fd, new_client));
-
-				msg.set_sender(new_client.get_nickname());
-				// send a message back?
-				push_msg(fd, ("001 " + new_client.get_nickname() + " :Hi, welcome to IRC"));
-				push_msg(fd, ("002 " + new_client.get_nickname() + " :Your host is " +
-					_hostname + ", running version ALISTIM-v0.01"));
-				// could generate a timestamp when server class initialized to use here
-				push_msg(fd, ("003 " + new_client.get_nickname() + " :This server was created 2022AD"));
-				push_msg(fd, ("004 " + new_client.get_nickname() + " " + _hostname + "ALISTIM-v0.01 o o"));
-				exec_cmd_LUSERS(msg);
-				exec_cmd_MOTD(msg);
-			}
+				register_client(msg, fd, nick);
+			delete &msg;
+			received_msg_queue.pop();
 		}
-		else
-			push_msg(fd, "464 :Password incorrect");
 	}
 }
 

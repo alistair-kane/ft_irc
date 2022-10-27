@@ -4,7 +4,7 @@ CC		=	c++
 SRCS	=	main.cpp Message.cpp Server.cpp Client.cpp ServerCMDS.cpp Channel.cpp
 OBJS	=	$(SRCS:%.cpp=%.o)
 
-CFLAGS	=	-Wall -Wextra #-Werror -std=c++98
+CFLAGS	=	-Wall -Wextra -g #-Werror -std=c++98
 
 PORT		:=	4242
 PASS		:=	Wolfsburg

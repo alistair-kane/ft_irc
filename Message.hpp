@@ -20,14 +20,14 @@ class Message
 
 		void				parse(void);
 		std::string const	&get_cmd(void) const;
-		std::string const 	&get_arg(int idx) const;
+		std::string		 	get_arg(int idx) const;
 		std::string const	&get_sender(void) const;
 		void				set_receiver(std::string receiver);
 		// std::string const & print_message(void) const;
 		int const 			&get_fd(void) const;
 		// int get_len(void) const;
 		void				set_cmd(std::string cmd);
-		void				set_arg(int idx, std::string _arg);
+		void				add_arg(char *_arg);
 		void				set_sender(std::string _sender);
 		const char 			*raw_msg(void) const;
 		std::string const 	&get_receiver(void) const;
