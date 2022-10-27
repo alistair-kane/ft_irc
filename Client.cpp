@@ -90,3 +90,8 @@ void Client::add_to_channel_list(std::string const &channel_name)
 {
 	this->channel_list.push_back(channel_name);
 }
+
+void	Client::remove_from_channel_list(std::string const &channel_name)
+{
+	this->channel_list.remove(channel_list.begin(), channel_list.end(), channel_name);
+}

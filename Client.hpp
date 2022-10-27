@@ -24,6 +24,7 @@ class Client
 		void				set_username(std::string const &username);
 		std::vector<std::string>	&get_channel_list(void) const;
 		void						add_to_channel_list(std::string const &channel_name);
+		void						remove_from_channel_list(std::string const &channel_name);
 
 		void		clear_message_buffer(void);
 		void		append_message_buffer(char const * input);
