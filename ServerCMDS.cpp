@@ -101,6 +101,7 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 		channel_list.insert(std::make_pair(channel_name, Channel(channel_name, fd)));
 		channel = channel_list.find(channel_name);
 		channel->second.add_operator(fd);
+		client_to_add->add_to_channel_list(channel_name);
 
 		// Create initial channel message
 		std::string join_channel_msg = client_to_add->get_nickname() + " created the channel " + channel_name;
@@ -113,6 +114,7 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 
 	// if channel exists add user to it
 	channel->second.add_member(fd, nick);
+	client_to_add->add_to_channel_list(channel_name);
 
 	// send message to the channel that user joined
 	std::string join_channel_msg = client_to_add->get_nickname() + " joined " + channel_name;
