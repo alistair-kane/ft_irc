@@ -22,6 +22,8 @@ class Client
 		void				set_nickname(std::string const &nickname);
 		std::string const	&get_username(void) const;
 		void				set_username(std::string const &username);
+		std::vector<std::string>	&get_channel_list(void) const;
+		void						add_to_channel_list(std::string const &channel_name);
 
 		void		clear_message_buffer(void);
 		void		append_message_buffer(char const * input);
@@ -34,4 +36,5 @@ class Client
 		std::string	nickname;
 		std::string	username;
 		std::string	message_buffer;
+		std::vector<std::string>	channel_list;
 };
