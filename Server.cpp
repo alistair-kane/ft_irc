@@ -121,17 +121,11 @@ void    Server::start_server(void)
 					}
 					else // we got something valid from a client
 					{
+						parse_messages(clients[i].fd, buf);
 						// if the fd is marked as registered we parse message as normal
 						// otherwise the registration handler must be invoked
-						parse_messages(clients[i].fd, buf);
-
-						// std::cout << "NUM ELEMENTS: [" << numElements << "]" << std::endl;
-						// int *reg_client_end = reg_clients + numElements;
 						if (std::find(reg_clients.begin(), reg_clients.end(), clients[i].fd) != reg_clients.end())
-						{
-							// client is already registered
-							exec_cmds();
-						}
+							exec_cmds(); // client is already registered
 						else
 							handle_registration();
 						memset(buf, 0, sizeof(buf));
@@ -147,9 +141,7 @@ void    Server::start_server(void)
 									send_channel_msg(msg_to_send, channel->second);
 							}
 							else
-							{
 								send_priv_msg(msg_to_send);
-							}
 							send_msg_queue.pop();
 						}
 					}
@@ -424,7 +416,7 @@ void Server::match_cmd(Message &msg)
 	}
 }
 
-int	Server::exec_cmds()
+void	Server::exec_cmds()
 {
 	for (int i = 0; i < (int)received_msg_queue.size(); i++)
 	{
@@ -434,7 +426,6 @@ int	Server::exec_cmds()
 		delete cmd_msg;
 		received_msg_queue.pop();
 	}
-	return (0);
 }
 
 void	Server::reply_461(int fd, std::string cmd, std::string nick)

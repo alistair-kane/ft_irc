@@ -226,42 +226,39 @@ void	Server::exec_cmd_NICK(Message &cmd_msg)
 	}
 	std::map<int, Client>::iterator	it;	
 
-	// check if the param of nick is already contained in the client list
-	//		if yes - return the error
+	// for matching nickname check
 	for (it = client_list.begin(); it != client_list.end(); it++)
 	{
-		std::string	current = it->second.get_nickname();
-		if (current == arg)
+		std::string	nick = it->second.get_nickname();
+		if (nick == arg)
 		{
 			// if the nickname is equal to the arg, and the fd matches, change it
 			if (it->first == fd)
 			{
+				// user is entering same nick as what they already have 
 				it->second.set_nickname(arg);
-				std::string full = ":" + current + "! __ @ __ NICK " + it->second.get_nickname() + "\r\n";
+				std::string full = ":" + nick + "! __ @ __ NICK " + it->second.get_nickname();
 				Message msg(fd, full);
 				// Channel chan()
 				// send_channel_msg(msg, );
-
 			}
 			else
-				push_msg(fd, ("433 " + current + " " + arg + " :Nickname already taken"));
+				push_msg(fd, ("433 " + nick + " " + arg + " :Nickname already taken"));
 			return ;
 		}
 	}
-	// // if not, create a new instance of the client class and add to the client list map
-	// // along with the fd of the socket 
-	// Client new_client(fd, arg);
-	// client_list.insert(std::make_pair(fd, new_client));
-	// cmd_msg.set_sender(new_client.get_nickname());
-	// // send a message back?
-	// push_msg(fd, ("001 " + new_client.get_nickname() + " :Hi, welcome to IRC"));
-	// push_msg(fd, ("002 " + new_client.get_nickname() + " :Your host is " +
-	// 	_hostname + ", running version ALISTIM-v0.01"));
-	// // could generate a timestamp when server class initialized to use here
-	// push_msg(fd, ("003 " + new_client.get_nickname() + " :This server was created 2022AD"));
-	// push_msg(fd, ("004 " + new_client.get_nickname() + " " + _hostname + "ALISTIM-v0.01 o o"));
-	// exec_cmd_LUSERS(cmd_msg);
-	// exec_cmd_MOTD(cmd_msg);
+	// to change after matching check
+	for (it = client_list.begin(); it != client_list.end(); it++)
+	{
+		if (it->first == fd)
+		{
+			std::string temp = it->second.get_nickname();
+			it->second.set_nickname(arg);
+			std::string full = ":" + temp + "! __ @ __ NICK " + it->second.get_nickname();
+			Message msg(fd, full);
+		}
+	}
+
 }
 
 void	Server::exec_cmd_NOTICE(Message &cmd_msg)
