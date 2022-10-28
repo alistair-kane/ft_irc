@@ -96,9 +96,10 @@ class Server
 
 		// need to create channel class?
 		// std::map<std::string, Channel>	channel_list;
-		struct pollfd			clients[64];
-		std::vector<int>		auth_clients;
-		std::vector<int>		reg_clients;
+		struct pollfd				clients[64];
+		std::map<int, std::string>	host_ips;
+		std::vector<int>			auth_clients;
+		std::vector<int>			reg_clients;
 		// int						reg_count;
 
 		int						sockfd;
@@ -111,7 +112,7 @@ class Server
 		// int						get_client_fd(std::string const & nickname);
 		Client					*get_client(int const & fd);
 		
-		void					add_new_client(int newfd, int *fd_count);
+		void					add_new_client(int newfd, int *fd_count, std::string host);
 		void					remove_client(int i, int *ft_count);
 
 		void *					get_in_addr(struct sockaddr *sa);

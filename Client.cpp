@@ -81,7 +81,7 @@ std::string const & Client::get_message_buffer(void) const
 	return (this->message_buffer);
 }
 
-std::vector<std::string>	&Client::get_channel_list(void) const
+std::vector<std::string>	&Client::get_channel_list(void)
 {
 	return (this->channel_list);
 }
@@ -93,5 +93,5 @@ void Client::add_to_channel_list(std::string const &channel_name)
 
 void	Client::remove_from_channel_list(std::string const &channel_name)
 {
-	this->channel_list.remove(channel_list.begin(), channel_list.end(), channel_name);
+	this->channel_list.erase(std::remove(channel_list.begin(), channel_list.end(), channel_name), channel_list.end());
 }

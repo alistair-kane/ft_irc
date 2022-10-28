@@ -1,6 +1,8 @@
 #pragma once
 
 #include <iostream>
+#include <vector>
+#include <algorithm>
 
 class Client
 {
@@ -22,7 +24,7 @@ class Client
 		void				set_nickname(std::string const &nickname);
 		std::string const	&get_username(void) const;
 		void				set_username(std::string const &username);
-		std::vector<std::string>	&get_channel_list(void) const;
+		std::vector<std::string>	&get_channel_list(void);
 		void						add_to_channel_list(std::string const &channel_name);
 		void						remove_from_channel_list(std::string const &channel_name);
 

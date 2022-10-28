@@ -227,7 +227,6 @@ void	Server::exec_cmd_NICK(Message &cmd_msg)
 		return ;
 	}
 	std::map<int, Client>::iterator	it;	
-
 	// for matching nickname check
 	for (it = client_list.begin(); it != client_list.end(); it++)
 	{
@@ -239,8 +238,11 @@ void	Server::exec_cmd_NICK(Message &cmd_msg)
 			{
 				// user is entering same nick as what they already have 
 				it->second.set_nickname(arg);
-				std::string full = ":" + nick + "! __ @ __ NICK " + it->second.get_nickname();
+				std::string full = ":" + nick + "!" + it->second.get_username();
+					+ "@" + host_ips.find(fd)->second
+					+ " NICK " + it->second.get_nickname();
 				Message msg(fd, full);
+				// msg.set_receiver()
 				// Channel chan()
 				// send_channel_msg(msg, );
 			}
@@ -254,10 +256,21 @@ void	Server::exec_cmd_NICK(Message &cmd_msg)
 	{
 		if (it->first == fd)
 		{
-			std::string temp = it->second.get_nickname();
+			std::string old_nick = it->second.get_nickname();
 			it->second.set_nickname(arg);
-			std::string full = ":" + temp + "! __ @ __ NICK " + it->second.get_nickname();
+			std::string full = ":" + old_nick + "!" + it->second.get_username();
+				+ "@" + host_ips.find(fd)->second
+				+ " NICK " + it->second.get_nickname();
 			Message msg(fd, full);
+
+			// find tne channels that the user is in (if any)
+			if (it->second.get_channel_list().empty() == true)
+			{
+				push_msg(fd, full);
+			}
+			else
+				std::cout << "Channel list:" << it->second.get_channel_list().at(0) << std::endl;
+				// add these to the reciever part of message?
 		}
 	}
 
@@ -337,51 +350,8 @@ void	Server::exec_cmd_STATS(Message &cmd_msg)
 
 void	Server::exec_cmd_USER(Message &cmd_msg)
 {
-	std::string	arg = cmd_msg.get_arg(0);
-	int			fd = cmd_msg.get_fd();
-	if (arg.empty())
-	{
-		push_msg(fd, "431 : No username entered");
-		return ;
-	}
-	std::map<int, Client>::iterator	it;
-
-	// check if the param of user is already contained in the client list
-	//		if yes - return the error
-	for (it = client_list.begin(); it != client_list.end(); it++)
-	{
-		std::string	current = it->second.get_username();
-		if (current == arg)
-		{
-			// if the nickname is equal to the arg, and the fd matches, change it
-			if (it->first == fd)
-			{
-				it->second.set_username(arg);
-				std::string full = ":" + current + "! __ @ __ NICK " + it->second.get_username() + "\r\n";
-				Message msg(fd, full);
-				// Channel chan()
-				// send_channel_msg(msg, );
-
-			}
-			else
-				push_msg(fd, ("433 " + current + " " + arg + " :Nickname already taken"));
-			return ;
-		}
-	}
-	// if not, create a new instance of the client class and add to the client list map
-	// along with the fd of the socket 
-	Client new_client(fd, arg);
-	client_list.insert(std::make_pair(fd, new_client));
-	cmd_msg.set_sender(new_client.get_username());
-	// send a message back?
-	push_msg(fd, ("001 " + new_client.get_username() + " :Hi, welcome to IRC"));
-	push_msg(fd, ("002 " + new_client.get_username() + " :Your host is " +
-		_hostname + ", running version ALISTIM-v0.01"));
-	// could generate a timestamp when server class initialized to use here
-	push_msg(fd, ("003 " + new_client.get_username() + " :This server was created 2022AD"));
-	push_msg(fd, ("004 " + new_client.get_username() + " " + _hostname + "ALISTIM-v0.01 o o"));
-	exec_cmd_LUSERS(cmd_msg);
-	exec_cmd_MOTD(cmd_msg);
+	(void)cmd_msg;
+	//unsupported command!
 }
 
 void	Server::exec_cmd_VERSION(Message &cmd_msg)

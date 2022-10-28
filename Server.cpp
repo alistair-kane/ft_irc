@@ -86,7 +86,8 @@ void    Server::start_server(void)
 					}
 					else
 					{
-						add_new_client(new_fd, &fd_count); // original passes fd_size for realloc, we use container so don't need...?
+						std::string host = inet_ntop(client_addr.ss_family, get_in_addr((struct sockaddr*)&client_addr), remote_ip, INET6_ADDRSTRLEN);
+						add_new_client(new_fd, &fd_count, host); // original passes fd_size for realloc, we use container so don't need...?
 						std::cout << "pollserver: new connection from " 
 							<< inet_ntop(client_addr.ss_family, get_in_addr((struct sockaddr*)&client_addr), remote_ip, INET6_ADDRSTRLEN)
 							<< " on socket "
@@ -207,18 +208,22 @@ void	Server::push_msg(int fd, std::string text)
 	send_msg_queue.push(msg);
 }
 
-void	Server::add_new_client(int newfd, int *fd_count)
+void	Server::add_new_client(int newfd, int *fd_count, std::string host)
 {
 	// no realloc to handle more than 64 clients
 	clients[*fd_count].fd = newfd;
 	clients[*fd_count].events = POLLIN;
+	host_ips.insert(std::make_pair(newfd, host));
 	(*fd_count)++;
 }
 
 void	Server::remove_client(int i, int *fd_count)
 {
+	int temp_fd = clients[i].fd;
+
 	// Copy the one from the end over this one
 	clients[i] = clients[*fd_count - 1];
+	host_ips.erase(temp_fd);
 	(*fd_count)--;
 }
 
