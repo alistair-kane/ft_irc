@@ -101,6 +101,7 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 		channel_list.insert(std::make_pair(channel_name, Channel(channel_name, fd)));
 		channel = channel_list.find(channel_name);
 		channel->second.add_operator(fd);
+		channel->second.add_member(fd, nick);
 		client_to_add->add_to_channel_list(channel_name);
 
 		// Create initial channel message
@@ -194,6 +195,7 @@ void	Server::exec_cmd_MAP(Message &cmd_msg)
 
 void	Server::exec_cmd_MODE(Message &cmd_msg)
 {
+	// OBSOLETE
 	(void)cmd_msg;
 	return ;
 }
@@ -278,6 +280,7 @@ void	Server::exec_cmd_NICK(Message &cmd_msg)
 
 void	Server::exec_cmd_NOTICE(Message &cmd_msg)
 {
+	// TODO
 	(void)cmd_msg;
 	return ;
 }
@@ -314,6 +317,7 @@ void	Server::exec_cmd_PONG(Message &cmd_msg)
 
 void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 {
+	// TODO
 	(void)cmd_msg;
 	return ;
 }

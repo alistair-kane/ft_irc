@@ -7,6 +7,8 @@
 class Client
 {
 	public:
+
+		/* Constructors and Destructor */
 		//Client(void);
 		Client(int const & fd);
 		Client(std::string const & nickname);
@@ -20,18 +22,20 @@ class Client
 
 		// bool				get_auth(void) const;
 		// void				set_auth(void);
-		std::string const	&get_nickname(void) const;
-		void				set_nickname(std::string const &nickname);
-		std::string const	&get_username(void) const;
-		void				set_username(std::string const &username);
+
+		void				clear_message_buffer(void);
+		void				append_message_buffer(char const *input);
+		void				append_message_buffer(std::string const &input);
+		std::string const	&get_message_buffer(void) const;
+
+		/* Getters and Setters */
+		std::string const			&get_nickname(void) const;
+		void						set_nickname(std::string const &nickname);
+		std::string const			&get_username(void) const;
+		void						set_username(std::string const &username);
 		std::vector<std::string>	&get_channel_list(void);
 		void						add_to_channel_list(std::string const &channel_name);
 		void						remove_from_channel_list(std::string const &channel_name);
-
-		void		clear_message_buffer(void);
-		void		append_message_buffer(char const * input);
-		void		append_message_buffer(std::string const & input);
-		std::string const & get_message_buffer(void) const;
 
 	private:
 		int			fd;

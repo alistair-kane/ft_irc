@@ -7,29 +7,34 @@
 
 class Channel
 {	
-public:
-	Channel(std::string const &channel_name, int const &fd);
-	~Channel();
+	public:
+		/* Constructors and Destructor */
+		Channel(std::string const &channel_name, int const &fd);
+		~Channel();
 
-		std::map<int, std::string> const	&get_member_list(void) const;
-		void								add_member(int const &fd, std::string const &nick);
-		void								remove_member(int const & fd);
-
-		std::set<int> const &get_operator_list(void) const;
-		void				add_operator(int const & fd);
-		void				remove_operator(int const & fd);
-
+		/* Ban operations */
 		std::set<std::string> const	&get_ban_list(void) const;
-		void						ban_user(std::string const & nick);
-		void						unban_user(std::string const & nick);
+		void						ban_user(std::string const &nick);
+		void						unban_user(std::string const &nick);
 
-		void				invite_user(std::string const & nick);
+		void						invite_user(std::string const &nick);
 		
 		bool				is_channel_private(void) const;
-		void				set_channel_private(bool const & invite);
+		void				set_channel_private(bool const &invite);
 		
-		std::string const	&get_channel_topic(void) const;
-		void				set_channel_topic(std::string const & input);
+		/* Member operations */
+		void								add_member(int const &fd, std::string const &nick);
+		void								remove_member(int const & fd);
+		
+		/* Operator operations*/
+		void								add_operator(int const &fd);
+		void								remove_operator(int const &fd);
+
+		/* Getters and Setters */
+		std::map<int, std::string> const	&get_member_list(void) const;
+		std::set<int> const					&get_operator_list(void) const;
+		std::string const					&get_channel_topic(void) const;
+		void								set_channel_topic(std::string const &input);
 
  
 private:

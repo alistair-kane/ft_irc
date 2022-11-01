@@ -67,6 +67,7 @@ class Server
 			WHOWAS
 		};
 
+		/* Constructors and Destructor */
 		Server(int const & port, char const * password);
 		Server(Server const & copy);
 		Server & operator=(Server const & assign);
@@ -119,15 +120,16 @@ class Server
 
 		// void					store_message(int const & fd, char const * input);
 		// void					remove_message(int const & fd);
-		void					parse_messages(int const &fd, char *buf);
 		bool					handle_pass(void);
 		void					register_client(Message &msg, int fd, std::string nick);
 		void					handle_registration(void);
 		void					match_cmd(Message &msg);
 		// exec_funcs				match_cmd(std::string cmd);
 
+		/* Handle messages */
 		// When we created the Channel class we will use this function to distribute messages
 		// void					send_msg(Message const &msg, Channel const &channel);
+		void	parse_messages(int const &fd, char *buf);
 		void	send_priv_msg(Message const &msg);
 		void	send_channel_msg(Message const &msg, Channel const &channel);
 
@@ -137,9 +139,7 @@ class Server
 		Message	&reg_parser(Message *msg, int &fd, std::string &cmd, std::string &arg, std::string &sender);
 		bool	check_nickname(std::string arg);
 		
-
-
-		// Server command functions
+		/* Server command functions */
 		void	exec_cmd_ADMIN(Message &cmd_msg);
 		void	exec_cmd_AWAY(Message &cmd_msg);
 		void	exec_cmd_BAN(Message &cmd_msg);
