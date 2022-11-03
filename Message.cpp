@@ -111,12 +111,13 @@ std::string const & Message::get_receiver(void) const
 
 void	Message::set_receiver(std::string receiver)
 {
-	receiver = receiver;
+	this->receiver = receiver;
 }
 
 bool	Message::receiver_is_channel(void) const
 {
-	if (receiver[0] == '#' || receiver[0] == '&')
+	std::string temp = this->get_receiver();
+	if (temp[0] == '#' || temp[0] == '&')
 		return (true);
 	return (false);
 }

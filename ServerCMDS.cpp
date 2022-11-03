@@ -64,6 +64,7 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 	// get the channel name from the argument
 	std::string	const &channel_name = cmd_msg.get_arg(0);
 
+	
 	// get client who wants to join channel by fd
 	Client *client_to_add = get_client(fd);
 	if (client_to_add == NULL)
@@ -109,7 +110,7 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 		Message msg(join_channel_msg);
 		msg.set_receiver(channel_name);
 		send_msg_queue.push(msg);
-
+		// push_msg()
 		return ;
 	}
 

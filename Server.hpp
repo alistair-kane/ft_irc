@@ -100,6 +100,7 @@ class Server
 		struct pollfd				clients[64];
 		std::map<int, std::string>	host_ips;
 		std::vector<int>			auth_clients;
+		std::vector<std::string>	nicked_clients;
 		std::vector<int>			reg_clients;
 		// int						reg_count;
 
@@ -120,7 +121,9 @@ class Server
 
 		// void					store_message(int const & fd, char const * input);
 		// void					remove_message(int const & fd);
-		bool					handle_pass(void);
+		bool					handle_pass(int fd);
+		std::string				handle_nick(int fd);
+
 		void					register_client(Message &msg, int fd, std::string nick);
 		void					handle_registration(void);
 		void					match_cmd(Message &msg);

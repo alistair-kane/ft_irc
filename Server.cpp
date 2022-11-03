@@ -268,11 +268,12 @@ void	Server::send_channel_msg(Message const &msg, Channel const &channel)
 	std::map<int, std::string>::const_iterator itb = channel.get_member_list().begin();
 	std::map<int, std::string>::const_iterator ite = channel.get_member_list().end();
 	ssize_t bytes_sent = 0;
-	int	sender = msg.get_fd();
 	
 	for (; itb != ite; ++itb)
 	{
-		std::cout << "SENDING: [" << msg.raw_msg() << "] to fd:[" << msg.get_fd() << "]" << std::endl;
+		int	sender = itb->first;
+
+		std::cout << "SENDING: [" << msg.raw_msg() << "] to fd:[" << sender << "]" << std::endl;
 		bytes_sent = send(msg.get_fd(), msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
 		if (itb->first != sender)
 		{
@@ -297,9 +298,8 @@ Message &Server::reg_parser(Message *msg, int &fd, std::string &cmd, std::string
 	return (msg_copy);
 }
 
-bool Server::handle_pass(void)
+bool Server::handle_pass(int fd)
 {
-	int			fd;
 	std::string	cmd;
 	std::string	arg;
 	std::string sender;
@@ -328,6 +328,37 @@ bool Server::handle_pass(void)
 		received_msg_queue.pop();
 	}
 	return false;
+}
+
+std::string Server::handle_nick(int fd)
+{
+	std::string	cmd;
+	std::string	arg;
+	std::string sender;
+
+	// check if the user has already entered nick, if not go use nick
+	if (std::find(nicked_clients.begin(), nicked_clients.end(), fd) != nicked_clients.end())
+		return true;
+
+	for (int i = 0; i < (int)received_msg_queue.size(); i++)
+	{
+		reg_parser(received_msg_queue.front(), fd, cmd, arg, sender);
+			if (cmd == "NICK")
+			{
+				if (arg == "")
+				{
+					push_msg(fd, "431 :No nickname provided");
+					return ;
+				}
+				if (check_nickname(arg) == true)
+					push_msg(fd, ("433 * " + arg + " :Nickname already taken"));
+				else
+					nicked_clients.push_back(arg);
+					return arg;
+			}
+		received_msg_queue.pop();
+	}
+	return std::string();
 }
 
 void Server::register_client(Message &msg, int fd, std::string nick)
