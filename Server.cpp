@@ -298,15 +298,24 @@ Message &Server::reg_parser(Message *msg, int &fd, std::string &cmd, std::string
 	return (msg_copy);
 }
 
-bool Server::handle_pass(int fd)
+bool Server::handle_pass(void)
 {
 	std::string	cmd;
 	std::string	arg;
 	std::string sender;
 
+	int fd = received_msg_queue.front()->get_fd();
 	// check if the user has already entered correct pass, if not go use pass handler
-	if (std::find(auth_clients.begin(), auth_clients.end(), fd) != auth_clients.end())
-		return true;
+	std::map<int, Client>::iterator	it;
+	for (it = client_list.begin(); it != client_list.end(); it++)
+	{
+		if (fd == it->first) // && it->second.get_pass_auth() == true)
+		{
+			std::cout << "user is in client list already so must have entered correct pass" << std::endl;
+			return (true);
+		}
+	}
+	std::cout << "went through the client list without returning true\n";
 	for (int i = 0; i < (int)received_msg_queue.size(); i++)
 	{
 		reg_parser(received_msg_queue.front(), fd, cmd, arg, sender);
@@ -317,8 +326,10 @@ bool Server::handle_pass(int fd)
 			// password must be set in config file!!!!
 			else if (arg == _password)
 			{
-				std::cout << "### User authenticated ###\n";
-				auth_clients.push_back(fd);
+				std::cout << "### User pass authenticated ###\n";
+				Client new_client(fd);
+				// new_client.set_pass_auth();
+				client_list.insert(std::make_pair(fd, new_client));
 				received_msg_queue.pop();
 				return true;
 			}
@@ -330,35 +341,87 @@ bool Server::handle_pass(int fd)
 	return false;
 }
 
-std::string Server::handle_nick(int fd)
+bool Server::handle_nick(int fd)
 {
 	std::string	cmd;
 	std::string	arg;
 	std::string sender;
+	Client		*current;
 
-	// check if the user has already entered nick, if not go use nick
-	if (std::find(nicked_clients.begin(), nicked_clients.end(), fd) != nicked_clients.end())
-		return true;
-
+	std::map<int, Client>::iterator	it;
+	for (it = client_list.begin(); it != client_list.end(); it++)
+	{
+		if (it->first == fd)
+		{
+			if (it->second.get_nick_auth() == true)
+				return (true);
+			else 
+				current = &it->second;
+			break ;
+		}
+	}
 	for (int i = 0; i < (int)received_msg_queue.size(); i++)
 	{
 		reg_parser(received_msg_queue.front(), fd, cmd, arg, sender);
-			if (cmd == "NICK")
+		if (cmd == "NICK")
+		{
+			if (arg == "")
 			{
-				if (arg == "")
-				{
-					push_msg(fd, "431 :No nickname provided");
-					return ;
-				}
-				if (check_nickname(arg) == true)
-					push_msg(fd, ("433 * " + arg + " :Nickname already taken"));
-				else
-					nicked_clients.push_back(arg);
-					return arg;
+				push_msg(fd, "431 :No nickname provided");
+				return false;
 			}
-		received_msg_queue.pop();
+			if (check_nickname(arg) == true)
+				push_msg(fd, ("433 * " + arg + " :Nickname already taken"));
+			else
+			{
+				current->set_nickname(arg);
+				std::cout << "nickname set & registered" << std::endl;
+				return true;
+			}
+		}
+		// received_msg_queue.pop();
 	}
-	return std::string();
+	return false;
+}
+
+bool Server::handle_user(int fd)
+{
+	std::string	cmd;
+	std::string	arg;
+	std::string sender;
+	Client		*current;
+
+	std::map<int, Client>::iterator	it;
+	for (it = client_list.begin(); it != client_list.end(); it++)
+	{
+		if (it->first == fd)
+		{
+			if (it->second.get_user_auth() == true)
+				return (true);
+			else 
+				current = &it->second;
+			break ;
+		}
+	}
+	for (int i = 0; i < (int)received_msg_queue.size(); i++)
+	{
+		Message &msg = reg_parser(received_msg_queue.front(), fd, cmd, arg, sender);
+		if (cmd == "USER")
+		{
+			if (msg.get_arg(3).empty()) // probably wrong, need max filled idx or some bs
+			{
+				reply_461(fd, cmd, current->get_nickname());
+				return false;
+			}
+			else
+			{
+				current->set_username(msg.get_arg(3));
+				return true;
+			}
+		}
+		// received_msg_queue.pop();
+	}
+	return false;
 }
 
 void Server::register_client(Message &msg, int fd, std::string nick)
@@ -390,43 +453,24 @@ void Server::handle_registration(void)
 	std::string	cmd;
 	std::string	arg;
 	std::string sender;
-	
+
 	if (handle_pass() == true)
 	{
 		int q_size = received_msg_queue.size();
+		std::cout << "q_size-->:" << q_size << std::endl;
 		for (int i = 0; i < q_size; i++)
 		{
 			Message &msg = reg_parser(received_msg_queue.front(), fd, cmd, arg, sender);
-
-			if (cmd == "NICK")
+			if (handle_nick(fd) == true && handle_user(fd) == true) 
 			{
-				if (arg == "")
-				{
-					push_msg(fd, "431 :No nickname provided");
-					return ;
-				}
-				if (check_nickname(arg) == true)
-					push_msg(fd, ("433 * " + arg + " :Nickname already taken"));
-				else
-					nick = arg;
-			}
-			if (cmd == "USER")
-			{
-				if (msg.get_arg(3).empty()) // probably wrong, need max filled idx or some bs
-				{
-					reply_461(fd, cmd, nick);
-					return ;
-				}
-				user = arg;
-				realname = msg.get_arg(3);
+				std::cout << "nick and user has been entered!!" << std::endl;
+				register_client(msg, fd, nick);
 			}
 			if (cmd == "QUIT")
 			{
 				std::cout << "Client quit" << std::endl;
 				return ;
 			}
-			if (!nick.empty() && !user.empty())
-				register_client(msg, fd, nick);
 			delete &msg;
 			received_msg_queue.pop();
 		}

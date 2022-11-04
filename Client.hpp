@@ -33,13 +33,21 @@ class Client
 		void						set_nickname(std::string const &nickname);
 		std::string const			&get_username(void) const;
 		void						set_username(std::string const &username);
+		// bool						get_pass_auth(void) const;
+		// void						set_pass_auth(void);
+		bool						get_nick_auth(void) const;
+		void						set_nick_auth(bool val);
+		bool						get_user_auth(void) const;
+		void						set_user_auth(bool val);
 		std::vector<std::string>	&get_channel_list(void);
 		void						add_to_channel_list(std::string const &channel_name);
 		void						remove_from_channel_list(std::string const &channel_name);
 
 	private:
 		int			fd;
-		// bool		auth;
+		// bool		pass_auth;
+		bool		nick_auth;
+		bool		user_auth;
 		std::string	nickname;
 		std::string	username;
 		std::string	message_buffer;

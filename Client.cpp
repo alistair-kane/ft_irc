@@ -43,6 +43,7 @@ std::string const &Client::get_nickname(void) const
 void	Client::set_nickname(std::string const &nickname)
 {
 	this->nickname = nickname;
+	this->nick_auth = true;
 }
 
 std::string const &Client::get_username(void) const
@@ -53,6 +54,37 @@ std::string const &Client::get_username(void) const
 void	Client::set_username(std::string const &username)
 {
 	this->username = username;
+	this->user_auth = true;
+}
+
+// bool Client::get_pass_auth(void) const
+// {
+// 	return (this->pass_auth);
+// }
+
+// void	Client::set_pass_auth(void)
+// {
+// 	this->pass_auth = true;
+// }
+
+bool Client::get_nick_auth(void) const
+{
+	return (this->nick_auth);
+}
+
+void	Client::set_nick_auth(bool val)
+{
+	this->nick_auth = val;
+}
+
+bool Client::get_user_auth(void) const
+{
+	return (this->user_auth);
+}
+
+void	Client::set_user_auth(bool val)
+{
+	this->user_auth = val;
 }
 
 bool Client::operator<(Client const &rhs) const
