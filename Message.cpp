@@ -43,14 +43,11 @@ std::string const & Message::get_cmd(void) const
 std::string Message::get_arg(int idx) const
 {
 	// std::cout << "getting idx #" << idx << "\n";
-	if (_args.empty() == true)
-		return (std::string());
-	if (idx > (int)_args.size())
+	if (_args.empty())
 	{
-		std::cout << "OUT OF RANGE!" << std::endl;
+		std::cout << "EMPTY!" << std::endl;
 		return (std::string());
 	}
-	std::cout << "the value:" << _args.at(idx) << std::endl; 
 	return (_args.at(idx));
 }
 

@@ -35,6 +35,11 @@ Client::~Client(void)
 // 	auth = true;
 // }
 
+int	&Client::get_fd(void)
+{
+	return (this->fd);
+}
+
 std::string const &Client::get_nickname(void) const
 {
 	return (this->nickname);

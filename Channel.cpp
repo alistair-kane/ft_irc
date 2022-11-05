@@ -4,6 +4,7 @@ Channel::Channel(std::string const &channel_name, int const & fd) :channel_name(
 {
 	this->operator_list.insert(fd);
 	this->is_private_channel = false;
+	this->ban_list.insert(std::string());
 }
 
 Channel::~Channel(void)

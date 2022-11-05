@@ -29,6 +29,7 @@ class Client
 		std::string const	&get_message_buffer(void) const;
 
 		/* Getters and Setters */
+		int							&get_fd(void);
 		std::string const			&get_nickname(void) const;
 		void						set_nickname(std::string const &nickname);
 		std::string const			&get_username(void) const;
