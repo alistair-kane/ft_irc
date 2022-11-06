@@ -208,6 +208,17 @@ void	Server::push_msg(int fd, std::string text)
 	send_msg_queue.push(msg);
 }
 
+void	Server::push_multi_msg(Channel channel, std::string text)
+{
+	std::map<int, std::string> member_list = channel.get_member_list();
+	std::map<int, std::string>::iterator it;
+
+	for (it = member_list.begin(); it != member_list.end(); it++)
+	{
+		push_msg(it->first, text);
+	}
+}
+
 void	Server::add_new_client(int newfd, int *fd_count, std::string host)
 {
 	// no realloc to handle more than 64 clients

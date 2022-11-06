@@ -84,7 +84,7 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 
 	std::set<std::string> ban_list = channel->second.get_ban_list();
 	std::set<std::string>::iterator iter;
-	
+
 	// Loop over the operator_list
 	for (iter = ban_list.begin(); iter != ban_list.end(); iter++)
 	{
@@ -276,7 +276,7 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 {
 	std::string	arg = cmd_msg.get_arg(0);
 	std::string msg_from_arg = cmd_msg.get_arg(1);
-	int			fd = cmd_msg.get_fd();
+	int fd = cmd_msg.get_fd();
 	bool		is_channel_msg = false;
 
 	if (arg[0] == '#' || arg[0] == '&')
@@ -291,7 +291,7 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 			// throw error that channel doesn't exist
 			return ;
 		}
-		push_msg(fd, msg_from_arg);
+		push_multi_msg(channel->second, msg_from_arg);
 	}
 	else
 	{
@@ -311,6 +311,20 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 		}
 	}
 	return ;
+}
+
+void	Server::exec_cmd_TOPIC(Message &cmd_msg)
+{
+	std::string	const &channel_name = cmd_msg.get_arg(0);
+	std::string const &channel_topic = cmd_msg.get_arg(1);
+
+	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
+	if (channel == channel_list.end())
+	{
+		// throw error that channel doesn't exist
+		return ;
+	}
+	channel->second.set_channel_topic(channel_topic);
 }
 
 void	Server::exec_cmd_USER(Message &cmd_msg)

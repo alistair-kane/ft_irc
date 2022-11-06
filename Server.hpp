@@ -77,6 +77,7 @@ class Server
 		void    start_server(void);
 		void	exec_cmds(void);
 		void	push_msg(int fd, std::string text);
+		void	push_multi_msg(Channel channel, std::string text);
 
 	private:
 
@@ -162,6 +163,7 @@ class Server
 		void	exec_cmd_PING(Message &cmd_msg);
 		void	exec_cmd_PONG(Message &cmd_msg);
 		void	exec_cmd_PRIVMSG(Message &cmd_msg);
+		void	exec_cmd_TOPIC(Message &cmd_msg);
 		void	exec_cmd_USER(Message &cmd_msg);
 
 };
