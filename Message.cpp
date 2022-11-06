@@ -43,7 +43,7 @@ std::string const & Message::get_cmd(void) const
 std::string Message::get_arg(int idx) const
 {
 	// std::cout << "getting idx #" << idx << "\n";
-	if (_args.empty())
+	if (_args.empty() || (int)_args.size() <= idx)
 	{
 		std::cout << "EMPTY!" << std::endl;
 		return (std::string());
@@ -87,6 +87,11 @@ void	Message::add_arg(char *arg)
 		temp = std::string(arg);
 	std::cout << "added arg: [" << arg << "]" << std::endl;
 	_args.push_back(arg);
+}
+
+std::vector<std::string>	Message::get_arg_vector(void) const
+{
+	return(this->_args);
 }
 
 void	Message::set_sender(std::string sender)

@@ -36,6 +36,9 @@ class Message
 		void				set_sender(std::string _sender);
 		std::string const 	&get_receiver(void) const;
 		void				set_receiver(std::string receiver);
+		std::vector<std::string>	get_arg_vector(void) const;
+		// int					get_arg_count(void);
+		// void				set_arg_count(int count);
 
 	private:
 		std::string					prefix;

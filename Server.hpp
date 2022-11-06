@@ -17,7 +17,7 @@
 
 #include <errno.h>
 #include <stdlib.h>
-// #include <vector>
+#include <vector>
 #include <algorithm>
 #include <cstring>
 
@@ -100,10 +100,7 @@ class Server
 		// std::map<std::string, Channel>	channel_list;
 		struct pollfd				clients[64];
 		std::map<int, std::string>	host_ips;
-		// std::vector<int>			auth_clients;
-		// std::vector<std::string>	nicked_clients;
 		std::vector<int>			reg_clients;
-		// int						reg_count;
 
 		int						sockfd;
 		struct sockaddr_storage	client_addr;

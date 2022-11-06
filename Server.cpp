@@ -193,6 +193,7 @@ void	Server::parse_messages(int const &fd, char *buf)
 			sgmt = strtok_r(NULL, " ", &end_token);
 			idx++;
 		}
+		std::cout << "idx:[" << idx << "]" << std::endl;
 		temp->set_sender(sender);
 		received_msg_queue.push(temp);
 		line = strtok_r(NULL, "\r\n", &end_str);
@@ -426,7 +427,11 @@ bool Server::handle_user(int fd)
 			}
 			else
 			{
-				current->set_username(msg.get_arg(3));
+				std::string msg_from_arg;
+				std::vector<std::string> arg_vector = msg.get_arg_vector();
+				for (std::vector<std::string>::const_iterator i = arg_vector.begin() + 3; i != arg_vector.end(); i++)
+					msg_from_arg += *i;
+				current->set_username(msg_from_arg);
 				return true;
 			}
 		}
