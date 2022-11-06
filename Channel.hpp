@@ -13,12 +13,11 @@ class Channel
 		~Channel();
 
 		/* Ban operations */
-		std::set<std::string> const	&get_ban_list(void) const;
 		void						ban_user(std::string const &nick);
 		void						unban_user(std::string const &nick);
 
-		void						invite_user(std::string const &nick);
-		
+		/* Invite operations */
+		void				invite_user(std::string const &nick);
 		bool				is_channel_private(void) const;
 		void				set_channel_private(bool const &invite);
 		
@@ -26,11 +25,12 @@ class Channel
 		void								add_member(int const &fd, std::string const &nick);
 		void								remove_member(int const & fd);
 		
-		/* Operator operations*/
+		/* Operator operations */
 		void								add_operator(int const &fd);
 		void								remove_operator(int const &fd);
 
 		/* Getters and Setters */
+		std::set<std::string> const			&get_ban_list(void) const;
 		std::map<int, std::string> const	&get_member_list(void) const;
 		std::set<int> const					&get_operator_list(void) const;
 		std::string const					&get_channel_topic(void) const;
