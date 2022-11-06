@@ -49,8 +49,16 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 	// get fd from user joining channel
 	int	const fd = cmd_msg.get_fd();
 
+
 	// get the channel name from the argument
 	std::string	const &channel_name = cmd_msg.get_arg(0);
+
+	// Check if channel_name has correct syntax
+	if (channel_name[0] == '#' || channel_name[0] == '&')
+	{
+		// throw error
+		return ;
+	}
 
 	// get client who wants to join channel by fd
 	Client *client_to_add = get_client(fd);
@@ -237,8 +245,41 @@ void	Server::exec_cmd_NICK(Message &cmd_msg)
 
 void	Server::exec_cmd_NOTICE(Message &cmd_msg)
 {
-	// TODO
-	(void)cmd_msg;
+	std::string	arg = cmd_msg.get_arg(0);
+	std::string msg_from_arg = cmd_msg.get_arg(1);
+	bool		is_channel_msg = false;
+
+	if (arg[0] == '#' || arg[0] == '&')
+		is_channel_msg = true;
+
+	if (is_channel_msg)
+	{
+		std::string	const &channel_name = cmd_msg.get_arg(0);
+		std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
+		if (channel == channel_list.end())
+		{
+			// throw error that channel doesn't exist
+			return ;
+		}
+		push_multi_msg(channel->second, msg_from_arg);
+	}
+	else
+	{
+		std::map<int, Client>::iterator	it;	
+		// search for user matching the nickname
+		for (it = client_list.begin(); it != client_list.end(); it++)
+		{
+			std::string	nick = it->second.get_nickname();
+			if (nick == arg)
+			{
+				int receiver_fd = it->second.get_fd();
+				// Push message to the queue
+				// push_msg(it->first, ("433 " + nick + " " + arg + " :Nickname already taken"));
+				push_msg(receiver_fd, msg_from_arg);
+				return ;
+			}
+		}
+	}
 	return ;
 }
 
@@ -276,7 +317,6 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 {
 	std::string	arg = cmd_msg.get_arg(0);
 	std::string msg_from_arg = cmd_msg.get_arg(1);
-	int fd = cmd_msg.get_fd();
 	bool		is_channel_msg = false;
 
 	if (arg[0] == '#' || arg[0] == '&')
@@ -305,7 +345,7 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 				int receiver_fd = it->second.get_fd();
 				// Push message to the queue
 				// push_msg(it->first, ("433 " + nick + " " + arg + " :Nickname already taken"));
-				push_msg(fd, msg_from_arg);
+				push_msg(receiver_fd, msg_from_arg);
 				return ;
 			}
 		}
