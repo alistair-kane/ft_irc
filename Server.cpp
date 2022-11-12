@@ -269,6 +269,7 @@ void	Server::send_priv_msg(Message const &msg)
 
 	std::cout << "SENDING: " << msg.raw_msg();
 	bytes_sent = send(msg.get_fd(), msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
+	bot_check(msg.get_fd(), msg);
 	if (bytes_sent < (ssize_t)msg.msg_len())
 	{
 		std::cout << "error: message was not fully sent" << std::endl;
@@ -284,12 +285,14 @@ void	Server::send_channel_msg(Message const &msg, Channel const &channel)
 	for (; itb != ite; ++itb)
 	{
 		int	sender = itb->first;
-
+ 
 		std::cout << "SENDING: [" << msg.raw_msg() << "] to fd:[" << sender << "]" << std::endl;
 		bytes_sent = send(msg.get_fd(), msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
+		bot_check(msg.get_fd(), msg);
 		if (itb->first != sender)
 		{
 			bytes_sent = send(itb->first, msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
+			bot_check(itb->first, msg);
 		}
 	}
 	if (bytes_sent < (ssize_t)msg.msg_len())

@@ -141,6 +141,9 @@ class Server
 		Message	&reg_parser(Message *msg, int &fd, std::string &cmd, std::string &arg, std::string &sender);
 		bool	check_nickname(std::string arg);
 		
+		/* Server bot function*/
+		void	bot_check(int fd, Message const &cmd_msg);
+
 		/* Server command functions */
 		void	exec_cmd_BAN(Message &cmd_msg);
 		void	exec_cmd_INVITE(Message &cmd_msg);
