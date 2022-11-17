@@ -82,7 +82,7 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 		client_to_add->add_to_channel_list(channel_name);
 
 		// Create initial channel message
-		std::string join_channel_msg = client_to_add->get_nickname() + " created the channel " + channel_name;
+		std::string join_channel_msg = "431" + client_to_add->get_nickname() + " created the channel " + channel_name;
 		Message msg(join_channel_msg);
 		push_msg(fd, join_channel_msg);
 		msg.set_receiver(channel_name);
@@ -342,6 +342,7 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 	}
 	else
 	{
+		std::cout << "Goes in here" << std::endl;
 		std::map<int, Client>::iterator	it;	
 		// search for user matching the nickname
 		for (it = client_list.begin(); it != client_list.end(); it++)
@@ -349,6 +350,7 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 			std::string	nick = it->second.get_nickname();
 			if (nick == arg)
 			{
+				std::cout << "Goes in here" << std::endl;
 				int receiver_fd = it->second.get_fd();
 				// Push message to the queue
 				// push_msg(it->first, ("433 " + nick + " " + arg + " :Nickname already taken"));
