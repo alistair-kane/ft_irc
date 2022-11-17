@@ -114,7 +114,7 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 	client_to_add->add_to_channel_list(channel_name);
 
 	// send message to the channel that user joined
-	std::string join_channel_msg = client_to_add->get_nickname() + " joined " + channel_name;
+	std::string join_channel_msg = "431" + client_to_add->get_nickname() + " joined " + channel_name;
 	Message msg(join_channel_msg);
 	msg.set_receiver(channel_name);
 	send_msg_queue.push(msg);
