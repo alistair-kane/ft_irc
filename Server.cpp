@@ -482,8 +482,10 @@ void Server::handle_registration(void)
 			Message &msg = reg_parser(received_msg_queue.front(), fd, cmd, arg, sender);
 			if (handle_nick(fd) == true && handle_user(fd) == true) 
 			{
+				// does arg always equal the nick here?
 				std::cout << "nick and user has been entered!!" << std::endl;
-				register_client(msg, fd, nick);
+				// register_client(msg, fd, nick);
+				register_client(msg, fd, arg);
 			}
 			if (cmd == "QUIT")
 			{
