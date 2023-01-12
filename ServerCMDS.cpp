@@ -82,11 +82,17 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 		client_to_add->add_to_channel_list(channel_name);
 
 		// Create initial channel message
-		std::string join_channel_msg = "331 " + client_to_add->get_nickname() + " created the channel " + channel_name;
-		Message msg(join_channel_msg);
+		// std::string join_msg = ;
+		// Message msg(join_msg);
+		push_msg(fd, ("JOIN " + channel_name));
+		// msg.set_receiver(channel_name);
+		// send_msg_queue.push(msg);
+
+		std::string join_channel_msg = "331 " + client_to_add->get_nickname() + " " + channel_name + " :No topic is set";
+		// Message chan_msg(join_channel_msg);
 		push_msg(fd, join_channel_msg);
-		msg.set_receiver(channel_name);
-		send_msg_queue.push(msg);
+		// msg.set_receiver(channel_name);
+		// send_msg_queue.push(chan_msg);
 		// push_msg()
 		return ;
 	}

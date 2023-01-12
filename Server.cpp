@@ -132,7 +132,6 @@ void    Server::start_server(void)
 						size_t queue_len = send_msg_queue.size();
 						for (size_t j = 0; j < queue_len; j++)
 						{
-							std::cout << "to be sent #:::" << queue_len << std::endl;
 							// check if message is for channel
 							Message msg_to_send = send_msg_queue.front();
 							if (msg_to_send.receiver_is_channel())
