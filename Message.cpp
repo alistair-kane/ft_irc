@@ -85,7 +85,7 @@ void	Message::add_arg(char *arg)
 		temp = std::string();
 	else
 		temp = std::string(arg);
-	std::cout << "added arg: [" << arg << "]" << std::endl;
+	// std::cout << "added arg: [" << arg << "]" << std::endl;
 	_args.push_back(arg);
 }
 

@@ -105,7 +105,6 @@ void    Server::start_server(void)
 					{
 						if (n_bytes == 0) // connection is closed
 						{
-
 							std::cout << "pollserver: socket "
 								<< sender_fd
 								<< " hung up"
@@ -133,6 +132,7 @@ void    Server::start_server(void)
 						size_t queue_len = send_msg_queue.size();
 						for (size_t j = 0; j < queue_len; j++)
 						{
+							std::cout << "to be sent #:::" << queue_len << std::endl;
 							// check if message is for channel
 							Message msg_to_send = send_msg_queue.front();
 							if (msg_to_send.receiver_is_channel())
@@ -166,7 +166,7 @@ void	Server::parse_messages(int const &fd, char *buf)
 		// if the nickname is equal to the arg, and the fd already exists, change it
 		if (it->first == fd)
 		{
-			std::cout << "User is already registered and sender can be assigned" << std::endl;
+			// std::cout << "User is already registered and sender can be assigned" << std::endl;
 			sender = it->second.get_nickname();
 		}
 	}
@@ -177,7 +177,7 @@ void	Server::parse_messages(int const &fd, char *buf)
 		Message *temp = new Message(fd);
 		char *sgmt;
 		char *end_token;
-		std::cout << "line [" << line << "]" << std::endl;
+		// std::cout << "line [" << line << "]" << std::endl;
 		sgmt = strtok_r(line, " ", &end_token);
 		idx = 0;
 		while (sgmt != NULL)
@@ -193,7 +193,7 @@ void	Server::parse_messages(int const &fd, char *buf)
 			sgmt = strtok_r(NULL, " ", &end_token);
 			idx++;
 		}
-		std::cout << "idx:[" << idx << "]" << std::endl;
+		// std::cout << "idx:[" << idx << "]" << std::endl;
 		temp->set_sender(sender);
 		received_msg_queue.push(temp);
 		line = strtok_r(NULL, "\r\n", &end_str);
@@ -203,6 +203,9 @@ void	Server::parse_messages(int const &fd, char *buf)
 void	Server::push_msg(int fd, std::string text)
 {
 	std::string	full;
+	
+	std::string servername;
+	servername = ":blah@1234 ";
 
 	full = text + "\r\n";
 	Message msg(fd, full);
@@ -267,9 +270,9 @@ void	Server::send_priv_msg(Message const &msg)
 {
 	ssize_t bytes_sent = 0;
 
-	std::cout << "SENDING: " << msg.raw_msg();
+	std::cout << "SENDING_______" << msg.raw_msg();
 	bytes_sent = send(msg.get_fd(), msg.raw_msg(), msg.msg_len(), MSG_DONTWAIT);
-	bot_check(msg.get_fd(), msg);
+	// bot_check(msg.get_fd(), msg);
 	if (bytes_sent < (ssize_t)msg.msg_len())
 	{
 		std::cout << "error: message was not fully sent" << std::endl;
@@ -326,7 +329,7 @@ bool Server::handle_pass(void)
 	{
 		if (fd == it->first) // && it->second.get_pass_auth() == true)
 		{
-			std::cout << "user is in client list already so must have entered correct pass" << std::endl;
+			// std::cout << "user is in client list already so must have entered correct pass" << std::endl;
 			return (true);
 		}
 	}
@@ -341,7 +344,7 @@ bool Server::handle_pass(void)
 			// password must be set in config file!!!!
 			else if (arg == _password)
 			{
-				std::cout << "### User pass authenticated ###\n";
+				std::cout << "--> password correct" << std::endl;
 				Client new_client(fd);
 				// new_client.set_pass_auth();
 				client_list.insert(std::make_pair(fd, new_client));
@@ -370,9 +373,11 @@ bool Server::handle_nick(int fd)
 		{
 			if (it->second.get_nick_auth() == true)
 				return (true);
-			else 
+			else
+			{
 				current = &it->second;
-			break ;
+				break ;
+			}
 		}
 	}
 	for (int i = 0; i < (int)received_msg_queue.size(); i++)
@@ -381,20 +386,16 @@ bool Server::handle_nick(int fd)
 		if (cmd == "NICK")
 		{
 			if (arg == "")
-			{
 				push_msg(fd, "431 :No nickname provided");
-				return false;
-			}
-			if (check_nickname(arg) == true)
+			else if (check_nickname(arg) == true)
 				push_msg(fd, ("433 * " + arg + " :Nickname already taken"));
 			else
 			{
 				current->set_nickname(arg);
-				std::cout << "nickname set & registered" << std::endl;
+				std::cout << "--> nickname set" << std::endl;
 				return true;
 			}
 		}
-		// received_msg_queue.pop();
 	}
 	return false;
 }
@@ -413,9 +414,9 @@ bool Server::handle_user(int fd)
 		{
 			if (it->second.get_user_auth() == true)
 				return (true);
-			else 
+			else
 				current = &it->second;
-			break ;
+				break ;
 		}
 	}
 	for (int i = 0; i < (int)received_msg_queue.size(); i++)
@@ -424,10 +425,7 @@ bool Server::handle_user(int fd)
 		if (cmd == "USER")
 		{
 			if (msg.get_arg(3).empty()) // probably wrong, need max filled idx or some bs
-			{
 				reply_461(fd, cmd, current->get_nickname());
-				return false;
-			}
 			else
 			{
 				std::string msg_from_arg;
@@ -435,10 +433,10 @@ bool Server::handle_user(int fd)
 				for (std::vector<std::string>::const_iterator i = arg_vector.begin() + 3; i != arg_vector.end(); i++)
 					msg_from_arg += *i;
 				current->set_username(msg_from_arg);
+				std::cout << "--> username set" << std::endl;
 				return true;
 			}
 		}
-		// received_msg_queue.pop();
 	}
 	return false;
 }
@@ -476,7 +474,7 @@ void Server::handle_registration(void)
 	if (handle_pass() == true)
 	{
 		int q_size = received_msg_queue.size();
-		std::cout << "q_size-->:" << q_size << std::endl;
+		// std::cout << "q_size-->:" << q_size << std::endl;
 		for (int i = 0; i < q_size; i++)
 		{
 			Message &msg = reg_parser(received_msg_queue.front(), fd, cmd, arg, sender);
