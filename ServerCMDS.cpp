@@ -49,7 +49,6 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 	// get fd from user joining channel
 	int	const fd = cmd_msg.get_fd();
 
-
 	// get the channel name from the argument
 	std::string	const &channel_name = cmd_msg.get_arg(0);
 
@@ -67,6 +66,8 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 
 	// get nickname of client
 	std::string nick = client_to_add->get_nickname();
+	std::string username = client_to_add->get_username();
+
 
 	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
 
@@ -82,15 +83,19 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 		client_to_add->add_to_channel_list(channel_name);
 
 		// Create initial channel message
-		// std::string join_msg = ;
-		// Message msg(join_msg);
-		push_msg(fd, ("JOIN " + channel_name));
-		// msg.set_receiver(channel_name);
-		// send_msg_queue.push(msg);
+		std::string join_msg = ":" + nick + "!" + username + "@127.0.0.1 JOIN " + channel_name;
+		push_msg(fd, join_msg);
 
-		std::string join_channel_msg = "331 " + client_to_add->get_nickname() + " " + channel_name + " :No topic is set";
-		// Message chan_msg(join_channel_msg);
-		push_msg(fd, join_channel_msg);
+		std::string msg_331 = "331 " + nick + " " + channel_name + " :No topic is set";
+		push_msg(fd, msg_331);
+
+		std::string msg_353 = "353 " + nick + " = " + channel_name + " :" + nick;
+		push_msg(fd, msg_353);
+
+		// need to change later to hold all clients (nicks) inside of channel 
+		std::string msg_366 = "366 " + nick + " " + channel_name + " :End of NAMES list";
+		push_msg(fd, msg_366);
+
 		// msg.set_receiver(channel_name);
 		// send_msg_queue.push(chan_msg);
 		// push_msg()
@@ -120,11 +125,8 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 	client_to_add->add_to_channel_list(channel_name);
 
 	// send message to the channel that user joined
-	std::string join_channel_msg = "331 " + client_to_add->get_nickname() + " joined " + channel_name;
-	Message msg(join_channel_msg);
-	push_msg(fd, join_channel_msg);
-	msg.set_receiver(channel_name);
-	send_msg_queue.push(msg);
+	std::string msg_331 = "331 " + nick + " " + channel_name + " :No topic is set";
+	push_msg(fd, msg_331);
 
 	return ;
 }
@@ -175,7 +177,8 @@ void	Server::exec_cmd_LUSERS(Message &cmd_msg)
 void	Server::exec_cmd_MODE(Message &cmd_msg)
 {
 	// OBSOLETE
-	(void)cmd_msg;
+	// (void)cmd_msg;
+	std::cout << "MODE msg: " << cmd_msg.get_arg(0) << std::endl;
 	return ;
 }
 

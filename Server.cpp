@@ -98,7 +98,7 @@ void    Server::start_server(void)
 				else // If not the listener, we're just a regular client (already accepted in previous condition)
 				{
 					int n_bytes = recv(clients[i].fd, buf, 256 - 1, 0);
-					// std::cout << "n of bytes recieved: [" << n_bytes << "]" << std::endl;
+					std::cout << "recieved: " << buf << std::endl;
 					int sender_fd = clients[i].fd;
 
 					if (n_bytes <= 0)
@@ -204,7 +204,7 @@ void	Server::push_msg(int fd, std::string text)
 	std::string	full;
 	
 	std::string servername;
-	servername = ":blah@1234 ";
+	servername = ":127.0.0.1 ";
 
 	full = text + "\r\n";
 	Message msg(fd, full);
@@ -391,7 +391,7 @@ bool Server::handle_nick(int fd)
 			else
 			{
 				current->set_nickname(arg);
-				std::cout << "--> nickname set" << std::endl;
+				std::cout << "--> nickname set to[" << current->get_nickname() << "]" << std::endl;
 				return true;
 			}
 		}
@@ -427,12 +427,15 @@ bool Server::handle_user(int fd)
 				reply_461(fd, cmd, current->get_nickname());
 			else
 			{
-				std::string msg_from_arg;
-				std::vector<std::string> arg_vector = msg.get_arg_vector();
-				for (std::vector<std::string>::const_iterator i = arg_vector.begin() + 3; i != arg_vector.end(); i++)
-					msg_from_arg += *i;
-				current->set_username(msg_from_arg);
-				std::cout << "--> username set" << std::endl;
+				// std::string msg_from_arg;
+				// std::vector<std::string> arg_vector = msg.get_arg_vector();
+				// for (std::vector<std::string>::const_iterator i = arg_vector.begin() + 3; i != arg_vector.end(); i++)
+					// msg_from_arg += *i;
+				// current->set_username(msg_from_arg.erase(0, 1));
+				current->set_username(msg.get_arg(0));
+
+				std::cout << "--> username set to[" << current->get_username() << "]" << std::endl;
+
 				return true;
 			}
 		}
@@ -497,11 +500,12 @@ void Server::handle_registration(void)
 
 void Server::match_cmd(Message &msg)
 {
-	int const size = 6;
-	std::string cmds[] = {"JOIN", "LUSERS", "MOTD", "NICK", "PING", "PONG"};
+	int const size = 7;
+	std::string cmds[] = {"JOIN", "LUSERS", "MODE", "MOTD", "NICK", "PING", "PONG"};
 	void (Server::*func_pointers[size])(Message &msg) = {
 		&Server::exec_cmd_JOIN,
 		&Server::exec_cmd_LUSERS,
+		&Server::exec_cmd_MODE,
 		&Server::exec_cmd_MOTD,
 		&Server::exec_cmd_NICK,
 		&Server::exec_cmd_PING,
