@@ -98,7 +98,7 @@ void    Server::start_server(void)
 				else // If not the listener, we're just a regular client (already accepted in previous condition)
 				{
 					int n_bytes = recv(clients[i].fd, buf, 256 - 1, 0);
-					std::cout << "recieved: " << buf << std::endl;
+					std::cout << "received: " << buf << std::endl;
 					int sender_fd = clients[i].fd;
 
 					if (n_bytes <= 0)
@@ -169,7 +169,7 @@ void	Server::parse_messages(int const &fd, char *buf)
 			sender = it->second.get_nickname();
 		}
 	}
-	// std::cout << "msg to parse: " << _raw << std::endl;
+	// std::cout << "msg to parse: " << buf << std::endl;
 	line = strtok_r(buf, "\r\n", &end_str);
 	while (line != NULL)
 	{
@@ -194,6 +194,7 @@ void	Server::parse_messages(int const &fd, char *buf)
 		}
 		// std::cout << "idx:[" << idx << "]" << std::endl;
 		temp->set_sender(sender);
+		// temp->print_message();
 		received_msg_queue.push(temp);
 		line = strtok_r(NULL, "\r\n", &end_str);
 	}
@@ -500,8 +501,8 @@ void Server::handle_registration(void)
 
 void Server::match_cmd(Message &msg)
 {
-	int const size = 7;
-	std::string cmds[] = {"JOIN", "LUSERS", "MODE", "MOTD", "NICK", "PING", "PONG"};
+	int const size = 9;
+	std::string cmds[] = {"JOIN", "LUSERS", "MODE", "MOTD", "NICK", "PING", "PONG", "PRIVMSG", "BAN"};
 	void (Server::*func_pointers[size])(Message &msg) = {
 		&Server::exec_cmd_JOIN,
 		&Server::exec_cmd_LUSERS,
@@ -509,7 +510,9 @@ void Server::match_cmd(Message &msg)
 		&Server::exec_cmd_MOTD,
 		&Server::exec_cmd_NICK,
 		&Server::exec_cmd_PING,
-		&Server::exec_cmd_PONG
+		&Server::exec_cmd_PONG,
+		&Server::exec_cmd_PRIVMSG,
+		&Server::exec_cmd_BAN
 	};
 	for (int i = 0; i < size; i++)
 	{
@@ -545,6 +548,22 @@ bool	Server::check_nickname(std::string arg)
 			return (true);
 	}
 	return (false);
+}
+
+bool Server::is_operator(std::string const channel_name, int const request_fd)
+{
+	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
+	std::set<int> operator_list = channel->second.get_operator_list();
+	std::set<int>::iterator iter;
+	bool is_operator = false;
+	for (iter = operator_list.begin(); iter != operator_list.end(); iter++)
+	{
+		if (request_fd == *iter)
+		{
+			is_operator = true;
+		}
+	}
+	return (is_operator);
 }
 
 // void	Server::disconnect(int fd, std::string msg)

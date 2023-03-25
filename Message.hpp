@@ -20,7 +20,7 @@ class Message
 		~Message(void);
 
 		void				parse(void);
-		// std::string const & print_message(void) const;
+		std::string const & print_message(void) const;
 		// int get_len(void) const;
 		void				add_arg(char *_arg);
 		const char 			*raw_msg(void) const;

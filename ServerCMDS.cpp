@@ -1,38 +1,50 @@
 #include "Server.hpp"
 
+/* BAN <#channel> <nickname> */
 void	Server::exec_cmd_BAN(Message &cmd_msg)
 {
 	// check if user is operator by iterating over operator list and check if msg fd is in that list
 	// get fd of requesting user
 	int const request_fd = cmd_msg.get_fd();
 
-	// get channel the user should be banned from
-	std::string	const &channel_name = cmd_msg.get_arg(0);
+ 	// get channel the user should be banned from
+	std::string	const channel_name = cmd_msg.get_arg(0);
 	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
 
-	// get the list of operators of that channel
-	std::set<int> operator_list = channel->second.get_operator_list();
-	std::set<int>::iterator iter;
-	bool is_operator = false;
-   
-	// Loop over the operator_list
-	for (iter = operator_list.begin(); iter != operator_list.end(); iter++)
+	if (channel == channel_list.end())
 	{
-		if (request_fd == *iter)
-		{
-			is_operator = true;
-		}
+		// no channel
+		return;
 	}
 
-	if (is_operator)
+	if (is_operator(channel_name, request_fd))
 	{
 		// find user to ban in member_list from msg_arg
+		std::string nick = cmd_msg.get_arg(1);
+		int nick_fd = -1;
+		std::map<int, std::string> member_list = channel->second.get_member_list();
+		for (std::map<int, std::string>::iterator it = member_list.begin(); it != member_list.end(); it++)
+		{
+			if (it->second == nick)
+				nick_fd = it->first;
+		}
 
 		// if user to ban is not in member_list then throw error user not found
+		if (nick_fd == -1)
+		{
+			// throw error that user not found
+			return;
+		}
 
-		// if user to ban is in member_list remove from member_list and create message that user was banned
+		// if user to ban is in member_list remove from member_list
+		channel->second.remove_member(nick_fd);
 
 		// add user to ban list 
+		channel->second.ban_user(nick);
+
+		// create message that user was banned
+		push_msg(request_fd, nick + " was banned from channel: " + channel_name);
+		push_msg(nick_fd, nick + " You were banned from channel: " + channel_name);
 	}
 
 	return ;
@@ -40,7 +52,39 @@ void	Server::exec_cmd_BAN(Message &cmd_msg)
 
 void	Server::exec_cmd_INVITE(Message &cmd_msg)
 {
-	(void)cmd_msg;
+	// get fd of requesting user
+	int const request_fd = cmd_msg.get_fd();
+	std::string nick = cmd_msg.get_arg(0);
+	std::string	const &channel_name = cmd_msg.get_arg(1);
+
+	// Check if channel_name has correct syntax
+	if (!(channel_name[0] == '#' || channel_name[0] == '&'))
+	{
+		// throw error
+		return ;
+	}
+
+	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
+	if (channel == channel_list.end())
+	{
+		// Create channel
+		// Add nick to channel
+	}
+	else
+	{
+		// check if sender is member of the channel
+		std::map<int, std::string> member_list = channel->second.get_member_list();
+		if (member_list.find(request_fd) == member_list.end())
+		{
+			// throw error - requesting user is not member of the channel.
+			return;
+		}
+
+		// check if the channel mode is invite only
+			// if yes check if sender is an operator
+		// Add nick to channel
+	}
+
 	return ;
 }
 
@@ -67,7 +111,6 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 	// get nickname of client
 	std::string nick = client_to_add->get_nickname();
 	std::string username = client_to_add->get_username();
-
 
 	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
 

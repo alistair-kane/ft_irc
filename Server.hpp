@@ -166,6 +166,10 @@ class Server
 		void	exec_cmd_TOPIC(Message &cmd_msg);
 		void	exec_cmd_USER(Message &cmd_msg);
 
+		// ADMIN, AWAY, +BAN, +INVITE, +JOIN, +KICK, +KNOCK, +LINKS, +LIST, +LUSERS, MAP, +MODE, +MOTD, +NAMES, +NICK, +NOTICE,
+		// +PART, +PASS, +PING, +PONG, +PRIVMSG, QUIT, RULES, SETNAME, SILENCE, STATS, +USER, VERSION, WHO, WHOIS, WHOWAS
+
+		bool	is_operator(std::string const channel_name, int const request_fd);
 };
 
 typedef void	(Server:: *exec_funcs)(Message &msg);

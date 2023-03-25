@@ -56,16 +56,23 @@ std::string const & Message::get_sender(void) const
 	return (this->sender);
 }
 
-// std::string const & Message::print_message(void) const
-// {
-// 	std::cout	<< "fd: [" << _fd << "]\n"
-// 				<< "prefix: [" << this->prefix << "]\n"
-// 				<< "CMD: [" << this->CMD << "]\n"
-// 				<< "arg: [" << this->arg << "]\n"
-// 				<< "postfix: [" << this->postfix << "]\n";
-// 	//return (this->CMD + " " + this->sender + " " + this->receiver + " " + this->content + "\r\n")
-// 	return (_raw);
-// }
+std::string const & Message::print_message(void) const
+{
+	std::cout	<< "fd: [" << _fd << "]\n"
+				<< "prefix: [" << this->prefix << "]\n"
+				<< "CMD: [" << this->CMD << "]\n"
+				<< "sender: [" << this->sender << "]\n"
+				<< "receiver: [" << this->receiver << "]\n"
+				<< "postfix: [" << this->postfix << "]\n"
+				<< "raw: [" << this->_raw << "]\n"
+				<< "legit: [" << this->_legit << "]\n"
+				<< "args: [";
+	for (int i = 0; i < this->_args.size(); i++)
+		std::cout << this->_args[i] << "; ";
+	std::cout << std::endl;
+	//return (this->CMD + " " + this->sender + " " + this->receiver + " " + this->content + "\r\n")
+	return (_raw);
+}
 
 int const & Message::get_fd(void) const
 {
