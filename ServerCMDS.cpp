@@ -391,7 +391,9 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 			// throw error that channel doesn't exist
 			return ;
 		}
-		push_multi_msg(channel->second, msg_from_arg);
+		Client *sender_client = get_client(cmd_msg.get_fd());
+		std::string host = get_host(cmd_msg.get_fd());
+		push_multi_msg(channel->second, ":" + sender_client->get_nickname() + "!" + sender_client->get_username() + "@" + host + " PRIVMSG " + channel_name + " :" + msg_from_arg);
 	}
 	else
 	{

@@ -260,6 +260,15 @@ Client *Server::get_client(int const & fd)
 	return (NULL);
 }
 
+std::string Server::get_host(int const & fd)
+{
+	std::map<int, std::string>::iterator it = host_ips.find(fd);
+	if (it != host_ips.end())
+		return (it->second);
+	else
+		return ("NA");
+}
+
 void Server::print_error(const int &client_fd, std::string error_msg)
 {
 	(void)client_fd;

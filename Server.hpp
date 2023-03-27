@@ -111,6 +111,7 @@ class Server
 		// void					update_pollfd(void);
 		// int						get_client_fd(std::string const & nickname);
 		Client					*get_client(int const & fd);
+		std::string				get_host(int const & fd);
 		
 		void					add_new_client(int newfd, int *fd_count, std::string host);
 		void					remove_client(int i, int *ft_count);
