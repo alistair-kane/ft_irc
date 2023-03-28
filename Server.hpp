@@ -77,7 +77,7 @@ class Server
 		void    start_server(void);
 		void	exec_cmds(void);
 		void	push_msg(int fd, std::string text);
-		void	push_multi_msg(Channel channel, std::string text);
+		void	push_multi_msg(Channel channel, std::string text, int const &fd);
 
 	private:
 

@@ -212,14 +212,15 @@ void	Server::push_msg(int fd, std::string text)
 	send_msg_queue.push(msg);
 }
 
-void	Server::push_multi_msg(Channel channel, std::string text)
+void	Server::push_multi_msg(Channel channel, std::string text, int const &fd)
 {
 	std::map<int, std::string> member_list = channel.get_member_list();
 	std::map<int, std::string>::iterator it;
 
 	for (it = member_list.begin(); it != member_list.end(); it++)
 	{
-		push_msg(it->first, text);
+		if (it->first != fd) // don't send the message for the sender
+			push_msg(it->first, text);
 	}
 }
 
@@ -236,6 +237,8 @@ void	Server::remove_client(int i, int *fd_count)
 {
 	int temp_fd = clients[i].fd;
 
+	for (std::map<std::string, Channel>::iterator it = channel_list.begin(); it != channel_list.end(); it++)
+		it->second.remove_member(temp_fd);
 	// Copy the one from the end over this one
 	clients[i] = clients[*fd_count - 1];
 	host_ips.erase(temp_fd);

@@ -111,6 +111,7 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 	// get nickname of client
 	std::string nick = client_to_add->get_nickname();
 	std::string username = client_to_add->get_username();
+	std::string host = get_host(fd);
 
 	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
 
@@ -126,7 +127,7 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 		client_to_add->add_to_channel_list(channel_name);
 
 		// Create initial channel message
-		std::string join_msg = ":" + nick + "!" + username + "@127.0.0.1 JOIN " + channel_name;
+		std::string join_msg = ":" + nick + "!" + username + "@" + host + " JOIN :" + channel_name;
 		push_msg(fd, join_msg);
 
 		std::string msg_331 = "331 " + nick + " " + channel_name + " :No topic is set";
@@ -166,6 +167,9 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 	// if channel exists add user to it
 	channel->second.add_member(fd, nick);
 	client_to_add->add_to_channel_list(channel_name);
+
+	std::string join_msg = ":" + nick + "!" + username + "@" + host + " JOIN :" + channel_name;
+	push_msg(fd, join_msg);
 
 	// send message to the channel that user joined
 	std::string msg_331 = "331 " + nick + " " + channel_name + " :No topic is set";
@@ -315,7 +319,7 @@ void	Server::exec_cmd_NOTICE(Message &cmd_msg)
 			// throw error that channel doesn't exist
 			return ;
 		}
-		push_multi_msg(channel->second, msg_from_arg);
+		push_multi_msg(channel->second, msg_from_arg, -1);
 	}
 	else
 	{
@@ -393,7 +397,7 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 		}
 		Client *sender_client = get_client(cmd_msg.get_fd());
 		std::string host = get_host(cmd_msg.get_fd());
-		push_multi_msg(channel->second, ":" + sender_client->get_nickname() + "!" + sender_client->get_username() + "@" + host + " PRIVMSG " + channel_name + " :" + msg_from_arg);
+		push_multi_msg(channel->second, ":" + sender_client->get_nickname() + "!" + sender_client->get_username() + "@" + host + " PRIVMSG " + channel_name + " :" + msg_from_arg, cmd_msg.get_fd());
 	}
 	else
 	{
@@ -409,7 +413,9 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 				int receiver_fd = it->second.get_fd();
 				// Push message to the queue
 				// push_msg(it->first, ("433 " + nick + " " + arg + " :Nickname already taken"));
-				push_msg(receiver_fd, msg_from_arg);
+				Client *sender_client = get_client(cmd_msg.get_fd());
+				std::string host = get_host(cmd_msg.get_fd());
+				push_msg(receiver_fd, ":" + sender_client->get_nickname() + "!" + sender_client->get_username() + "@" + host + " PRIVMSG " + nick + " :" + msg_from_arg);
 				return ;
 			}
 		}
