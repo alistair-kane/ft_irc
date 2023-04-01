@@ -43,6 +43,7 @@ void	Server::exec_cmd_BAN(Message &cmd_msg)
 		channel->second.ban_user(nick);
 
 		// create message that user was banned
+		Client *sender_client = get_client(cmd_msg.get_fd());
 		push_msg(request_fd, nick + " was banned from channel: " + channel_name);
 		push_msg(nick_fd, nick + " You were banned from channel: " + channel_name);
 	}
@@ -129,6 +130,9 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 		// Create initial channel message
 		std::string join_msg = ":" + nick + "!" + username + "@" + host + " JOIN :" + channel_name;
 		push_msg(fd, join_msg);
+
+		push_msg(fd, ":" + format_nick_user_host(get_client(fd)) + " MODE " + channel_name + " +o " + nick);
+
 
 		std::string msg_331 = "331 " + nick + " " + channel_name + " :No topic is set";
 		push_msg(fd, msg_331);
@@ -221,11 +225,190 @@ void	Server::exec_cmd_LUSERS(Message &cmd_msg)
 	return ;
 }
 
+/* MODE <channel> {[+|-]|o|p|s|i|t|n|b|v} [<limit>] [<user>] [<ban mask>] */
+void Server::exec_cmd_CHANNEL_MODE(Message &cmd_msg, Channel *channel)
+{
+	std::string flags = cmd_msg.get_arg(1);
+	const int op_fd = cmd_msg.get_fd();
+	if (flags.find('-') != std::string::npos && flags.find('+') != std::string::npos)
+		return; // Wrong format
+
+	if (flags.find('o') != std::string::npos) // give/take channel operator priviligies
+	{
+		std::string nick = cmd_msg.get_arg(2);
+		int client_fd = get_client_fd(nick);
+		if (channel->is_member(client_fd))
+		{
+			if (flags.find('-') != std::string::npos)
+				channel->remove_operator(client_fd);
+			else
+				channel->add_operator(client_fd);
+			push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags + " " + nick);
+			push_msg(client_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags + " " + nick);
+		}
+	}
+
+	if (flags.find('p') != std::string::npos) // private channel flag
+	{
+		if (flags.find('-') != std::string::npos)
+			channel->set_channel_private(0);
+		else
+			channel->set_channel_private(1);
+		push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags);
+	}
+
+	if (flags.find('s') != std::string::npos) // secret channel flag
+	{
+		if (flags.find('-') != std::string::npos)
+			channel->set_channel_secret(0);
+		else
+			channel->set_channel_secret(1);
+		push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags);
+	}
+
+	if (flags.find('i') != std::string::npos) // invite-only channel flag
+	{
+		if (flags.find('-') != std::string::npos)
+			channel->set_channel_inviteonly(0);
+		else
+			channel->set_channel_inviteonly(1);
+		push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags);
+	}
+
+	if (flags.find('t') != std::string::npos) // t - topic settable by channel operator only flag;
+	{
+		if (flags.find('-') != std::string::npos)
+			channel->set_channel_topic_settable(0);
+		else
+			channel->set_channel_topic_settable(1);
+		push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags);
+	}
+
+	if (flags.find('n') != std::string::npos) // n - no messages to channel from clients on the outside;
+	{
+		if (flags.find('-') != std::string::npos)
+			channel->set_channel_inside_only(0);
+		else
+			channel->set_channel_inside_only(1);
+		push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags);
+	}
+
+	if (flags.find('m') != std::string::npos) // m - moderated channel;
+	{
+		if (flags.find('-') != std::string::npos)
+			channel->set_channel_moderated(0);
+		else
+			channel->set_channel_moderated(1);
+		push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags);
+	}
+
+	if (flags.find('l') != std::string::npos) // l - set the user limit to channel;
+	{
+		if (flags.find('-') != std::string::npos)
+		{
+			channel->set_channel_limited(0);
+			push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags);
+		}
+		else
+		{
+			std::string s_limit = cmd_msg.get_arg(2);
+			if (s_limit.length() > 0)
+			{
+				int limit = std::stoi(s_limit);
+				if (limit > 0)
+				{
+					channel->set_channel_limited(1);
+					channel->set_limit(limit);
+					push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags + " :" + std::to_string(limit));
+				}
+			}
+		}
+	}
+
+	if (flags.find('b') != std::string::npos) // b - set a ban mask to keep users out;
+	{
+		std::string nick = cmd_msg.get_arg(2);
+		int client_fd = get_client_fd(nick);
+		if (flags.find('-') != std::string::npos)
+		{
+			channel->unban_user(nick);
+		}
+		else
+		{
+			channel->ban_user(nick);
+			if (channel->is_member(client_fd))
+			{
+				channel->remove_member(client_fd);
+				push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " KICK " + cmd_msg.get_arg(0) + " " + nick);
+				push_msg(client_fd, ":" + format_nick_user_host(get_client(op_fd)) + " KICK " + cmd_msg.get_arg(0) + " " + nick);
+			}
+		}
+		push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags + " " + nick);
+		push_msg(client_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags + " " + nick);
+	}
+
+	if (flags.find('v') != std::string::npos) // v - give/take the ability to speak on a moderated channel;
+	{
+		if (channel->is_channel_moderated())
+		{
+			std::string nick = cmd_msg.get_arg(2);
+			int client_fd = get_client_fd(nick);
+			if (flags.find('-') != std::string::npos)
+				channel->cant_talk_user(nick);
+			else
+				channel->can_talk_user(nick);
+			push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags + " " + nick);
+			push_msg(client_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags + " " + nick);
+		}
+	}
+
+	if (flags.find('k') != std::string::npos) // k - set a channel key (password)
+	{
+		if (flags.find('-') != std::string::npos)
+			channel->set_key("");
+		else
+			channel->set_key(cmd_msg.get_arg(2));
+		push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags);
+	}
+}
+
+/* MODE <nickname> {[+|-]|i|w|s|o}*/
+void Server::exec_cmd_USER_MODE(Message &cmd_msg, Client *client)
+{
+
+}
+
 void	Server::exec_cmd_MODE(Message &cmd_msg)
 {
-	// OBSOLETE
-	// (void)cmd_msg;
-	std::cout << "MODE msg: " << cmd_msg.get_arg(0) << std::endl;
+	std::string	const &target_name = cmd_msg.get_arg(0); // channel or nickname
+	const int fd = cmd_msg.get_fd();
+	// Setting the mode of a channel
+	if (target_name[0] == '#' || target_name[0] == '&')
+	{
+		std::map<std::string, Channel>::iterator channel = channel_list.find(target_name);
+		if (channel == channel_list.end())
+		{
+			//throw error: No channel
+			return;
+		}
+		if (!is_operator(target_name, fd))
+		{
+			//throw error: Not operator
+			return;
+		}
+		exec_cmd_CHANNEL_MODE(cmd_msg, &(channel->second));
+	}
+	// Setting the mode of a user
+	else
+	{
+		Client *client = get_client_by_nick(target_name);
+		if (client == NULL)
+		{
+			//throw error: No client
+			return;
+		}
+		exec_cmd_USER_MODE(cmd_msg, client);
+	}
 	return ;
 }
 
@@ -396,8 +579,7 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 			return ;
 		}
 		Client *sender_client = get_client(cmd_msg.get_fd());
-		std::string host = get_host(cmd_msg.get_fd());
-		push_multi_msg(channel->second, ":" + sender_client->get_nickname() + "!" + sender_client->get_username() + "@" + host + " PRIVMSG " + channel_name + " :" + msg_from_arg, cmd_msg.get_fd());
+		push_multi_msg(channel->second, format_msg(sender_client, "PRIVMSG", channel_name, msg_from_arg), cmd_msg.get_fd());
 	}
 	else
 	{
@@ -414,8 +596,7 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 				// Push message to the queue
 				// push_msg(it->first, ("433 " + nick + " " + arg + " :Nickname already taken"));
 				Client *sender_client = get_client(cmd_msg.get_fd());
-				std::string host = get_host(cmd_msg.get_fd());
-				push_msg(receiver_fd, ":" + sender_client->get_nickname() + "!" + sender_client->get_username() + "@" + host + " PRIVMSG " + nick + " :" + msg_from_arg);
+				push_msg(receiver_fd, format_msg(sender_client, "PRIVMSG", nick, msg_from_arg));
 				return ;
 			}
 		}

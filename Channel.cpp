@@ -5,13 +5,22 @@ Channel::Channel(std::string const &channel_name, int const & fd) :channel_name(
 {
 	this->operator_list.insert(fd);
 	this->is_private_channel = false;
+	this->is_secret_channel = false;
+	this->is_inviteonly_channel = false;
+	this->is_topic_settable = false; // by operator only
+	this->is_inside_only_chanel = false;
+	this->is_moderated_channel = false;
+	this->is_limited_channel = false;
 	this->ban_list.insert(std::string());
+	this->can_talk_list.insert(std::string());
+	this->user_limit = -1;
+	this->key = "";
 }
 
 Channel::~Channel(void)
 {}
 
-/* Ban operations */
+/* Restriction lists operations */
 void	Channel::ban_user(std::string const & nick)
 {
 	ban_list.insert(nick);
@@ -22,20 +31,85 @@ void	Channel::unban_user(std::string const & nick)
 	ban_list.erase(nick);
 }
 
-/* Invite operations */
-// void	invite_user(std::string const & nick)
-// {
-	
-// }
-
-void	Channel::set_channel_private(bool const & invite)
+void	Channel::can_talk_user(std::string const & nick)
 {
-	this->is_private_channel = invite;
+	can_talk_list.insert(nick);
+}
+
+void	Channel::cant_talk_user(std::string const & nick)
+{
+	can_talk_list.erase(nick);
+}
+
+/* Privacy operations */
+void	Channel::set_channel_private(bool const & yes)
+{
+	this->is_private_channel = yes;
 }
 
 bool	Channel::is_channel_private(void) const
 {
 	return (this->is_private_channel);
+}
+
+void	Channel::set_channel_secret(bool const & yes)
+{
+	this->is_secret_channel = yes;
+}
+
+bool	Channel::is_channel_secret(void) const
+{
+	return (this->is_secret_channel);
+}
+
+void	Channel::set_channel_inviteonly(bool const & yes)
+{
+	this->is_secret_channel = yes;
+}
+
+bool	Channel::is_channel_inviteonly(void) const
+{
+	return (this->is_secret_channel);
+}
+
+bool	Channel::is_channel_topic_settable(void) const
+{
+	return (this->is_topic_settable);
+}
+
+void	Channel::set_channel_topic_settable(bool const &yes)
+{
+	this->is_topic_settable = yes;
+}
+
+bool	Channel::is_channel_inside_only(void) const
+{
+	return (this->is_inside_only_chanel);
+}
+
+void	Channel::set_channel_inside_only(bool const &yes)
+{
+	this->is_inside_only_chanel = yes;
+}
+
+bool	Channel::is_channel_moderated(void) const
+{
+	return (this->is_moderated_channel);
+}
+
+void	Channel::set_channel_moderated(bool const &yes)
+{
+	this->is_moderated_channel = yes;
+}
+
+bool	Channel::is_channel_limited(void) const
+{
+	return (this->is_limited_channel);
+}
+
+void	Channel::set_channel_limited(bool const &yes)
+{
+	this->is_limited_channel = yes;
 }
 
 /* Member operations */
@@ -83,4 +157,19 @@ std::string const &	Channel::get_channel_topic(void) const
 void	Channel::set_channel_topic(std::string const & input)
 {
 	this->channel_topic = input;
+}
+
+bool	Channel::is_member(int const &fd)
+{
+	return (this->member_list.find(fd) != this->member_list.end());
+}
+
+void	Channel::set_limit(int l)
+{
+	this->user_limit = l;
+}
+
+void	Channel::set_key(std::string k)
+{
+	this->key = k;
 }

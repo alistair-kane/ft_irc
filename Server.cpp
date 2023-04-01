@@ -255,11 +255,31 @@ void * Server::get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+int Server::get_client_fd(std::string const & nickname)
+{
+	for (std::map<int, Client>::iterator client = client_list.begin(); client != client_list.end(); client++)
+	{
+		if (client->second.get_nickname() == nickname)
+			return (client->first);
+	}
+	return (-1);
+}
+
 Client *Server::get_client(int const & fd)
 {
 	std::map<int, Client>::iterator client_it = client_list.find(fd);
 	if (client_it != client_list.end())
 		return (&client_it->second);
+	return (NULL);
+}
+
+Client *Server::get_client_by_nick(std::string nick)
+{
+	for (std::map<int, Client>::iterator client = client_list.begin(); client != client_list.end(); client++)
+	{
+		if (client->second.get_nickname() == nick)
+			return (&(client->second));
+	}
 	return (NULL);
 }
 
@@ -576,6 +596,16 @@ bool Server::is_operator(std::string const channel_name, int const request_fd)
 		}
 	}
 	return (is_operator);
+}
+
+std::string Server::format_nick_user_host(Client *client)
+{
+	return(client->get_nickname() + "!" + client->get_username() + "@" + get_host(client->get_fd()));
+}
+
+std::string Server::format_msg(Client *sender, std::string cmd, std::string name, std::string msg)
+{
+	return(":" + format_nick_user_host(sender) + " " + cmd + " " + name + " :" + msg);
 }
 
 // void	Server::disconnect(int fd, std::string msg)

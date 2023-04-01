@@ -109,8 +109,9 @@ class Server
 
 		// void					collect_messages(void);
 		// void					update_pollfd(void);
-		// int						get_client_fd(std::string const & nickname);
+		int						get_client_fd(std::string const & nickname);
 		Client					*get_client(int const & fd);
+		Client					*get_client_by_nick(std::string nick);
 		std::string				get_host(int const & fd);
 		
 		void					add_new_client(int newfd, int *fd_count, std::string host);
@@ -155,6 +156,8 @@ class Server
 		void	exec_cmd_LIST(Message &cmd_msg);
 		void	exec_cmd_LUSERS(Message &cmd_msg);
 		void	exec_cmd_MODE(Message &cmd_msg);
+		void	exec_cmd_CHANNEL_MODE(Message &cmd_msg, Channel *channel);
+		void	exec_cmd_USER_MODE(Message &cmd_msg, Client *client);
 		void	exec_cmd_MOTD(Message &cmd_msg);
 		void	exec_cmd_NAMES(Message &cmd_msg);
 		void	exec_cmd_NICK(Message &cmd_msg);
@@ -171,6 +174,8 @@ class Server
 		// +PART, +PASS, +PING, +PONG, +PRIVMSG, QUIT, RULES, SETNAME, SILENCE, STATS, +USER, VERSION, WHO, WHOIS, WHOWAS
 
 		bool	is_operator(std::string const channel_name, int const request_fd);
+		std::string format_msg(Client *sender, std::string cmd, std::string name, std::string msg);
+		std::string format_nick_user_host(Client *client);
 };
 
 typedef void	(Server:: *exec_funcs)(Message &msg);
