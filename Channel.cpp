@@ -13,6 +13,7 @@ Channel::Channel(std::string const &channel_name, int const & fd) :channel_name(
 	this->is_limited_channel = false;
 	this->ban_list.insert(std::string());
 	this->can_talk_list.insert(std::string());
+	this->invite_list.insert(std::string());
 	this->user_limit = -1;
 	this->key = "";
 }
@@ -39,6 +40,11 @@ void	Channel::can_talk_user(std::string const & nick)
 void	Channel::cant_talk_user(std::string const & nick)
 {
 	can_talk_list.erase(nick);
+}
+
+void	Channel::invite_user(std::string const & nick)
+{
+	invite_list.insert(nick);
 }
 
 /* Privacy operations */
@@ -164,6 +170,11 @@ bool	Channel::is_member(int const &fd)
 	return (this->member_list.find(fd) != this->member_list.end());
 }
 
+bool	Channel::is_operator(int const &fd)
+{
+	return (this->operator_list.find(fd) != this->operator_list.end());
+}
+
 void	Channel::set_limit(int l)
 {
 	this->user_limit = l;
@@ -172,4 +183,17 @@ void	Channel::set_limit(int l)
 void	Channel::set_key(std::string k)
 {
 	this->key = k;
+}
+
+bool	Channel::can_client_join(Client *client_to_add)
+{
+	bool can_join = 1;
+	if (this->is_channel_secret() || this->is_channel_private() || this->is_channel_inviteonly())
+	{
+		if (this->invite_list.find(client_to_add->get_nickname()) == this->invite_list.end())
+			can_join = 0;
+	}
+	if (this->ban_list.find(client_to_add->get_nickname()) != this->ban_list.end())
+		can_join = 0;
+	return (can_join);
 }

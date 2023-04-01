@@ -4,6 +4,7 @@
 #include <set>
 #include <map>
 #include "Message.hpp"
+#include "Client.hpp"
 
 class Channel
 {	
@@ -53,6 +54,9 @@ class Channel
 		void								set_key(std::string k);
 
 		bool			is_member(int const &fd);
+		bool			is_operator(int const &fd);
+		bool			can_client_join(Client *client_to_add);
+
 
 private:
 	bool						is_private_channel;
@@ -68,6 +72,7 @@ private:
 	std::map<int, std::string>	member_list;
 	std::set<std::string>		ban_list;
 	std::set<std::string>		can_talk_list; // on moderated channel
+	std::set<std::string>		invite_list;
 	int							user_limit;
 	std::string					key;
 };
