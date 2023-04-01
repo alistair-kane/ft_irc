@@ -533,8 +533,8 @@ void Server::handle_registration(void)
 
 void Server::match_cmd(Message &msg)
 {
-	int const size = 9;
-	std::string cmds[] = {"JOIN", "LUSERS", "MODE", "MOTD", "NICK", "PING", "PONG", "PRIVMSG", "INVITE"};
+	int const size = 10;
+	std::string cmds[] = {"JOIN", "LUSERS", "MODE", "MOTD", "NICK", "PING", "PONG", "PRIVMSG", "INVITE", "KICK"};
 	void (Server::*func_pointers[size])(Message &msg) = {
 		&Server::exec_cmd_JOIN,
 		&Server::exec_cmd_LUSERS,
@@ -544,7 +544,8 @@ void Server::match_cmd(Message &msg)
 		&Server::exec_cmd_PING,
 		&Server::exec_cmd_PONG,
 		&Server::exec_cmd_PRIVMSG,
-		&Server::exec_cmd_INVITE
+		&Server::exec_cmd_INVITE,
+		&Server::exec_cmd_KICK
 		};
 	for (int i = 0; i < size; i++)
 	{

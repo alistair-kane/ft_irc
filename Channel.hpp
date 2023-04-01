@@ -55,8 +55,8 @@ class Channel
 
 		bool			is_member(int const &fd);
 		bool			is_operator(int const &fd);
-		bool			can_client_join(Client *client_to_add);
-
+		bool			can_client_join(Client *client_to_add, std::string _key);
+		bool			can_client_talk(Client *client_to_talk);
 
 private:
 	bool						is_private_channel;

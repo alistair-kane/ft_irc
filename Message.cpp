@@ -46,7 +46,7 @@ std::string Message::get_arg(int idx) const
 	if (_args.empty() || (int)_args.size() <= idx)
 	{
 		std::cout << "EMPTY!" << std::endl;
-		return (std::string());
+		return (std::string(""));
 	}
 	return (_args.at(idx));
 }

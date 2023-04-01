@@ -8,7 +8,7 @@ Channel::Channel(std::string const &channel_name, int const & fd) :channel_name(
 	this->is_secret_channel = false;
 	this->is_inviteonly_channel = false;
 	this->is_topic_settable = false; // by operator only
-	this->is_inside_only_chanel = false;
+	this->is_inside_only_chanel = true;
 	this->is_moderated_channel = false;
 	this->is_limited_channel = false;
 	this->ban_list.insert(std::string());
@@ -185,7 +185,7 @@ void	Channel::set_key(std::string k)
 	this->key = k;
 }
 
-bool	Channel::can_client_join(Client *client_to_add)
+bool	Channel::can_client_join(Client *client_to_add, std::string _key)
 {
 	bool can_join = 1;
 	if (this->is_channel_secret() || this->is_channel_private() || this->is_channel_inviteonly())
@@ -195,5 +195,24 @@ bool	Channel::can_client_join(Client *client_to_add)
 	}
 	if (this->ban_list.find(client_to_add->get_nickname()) != this->ban_list.end())
 		can_join = 0;
+
+	if (_key != this->key)
+		can_join = 0;
+
+	if (is_channel_limited() && user_limit <= (int) this->member_list.size())
+		can_join = 0;
+
 	return (can_join);
+}
+
+bool	Channel::can_client_talk(Client *client_to_talk)
+{
+	if (this->ban_list.find(client_to_talk->get_nickname()) != this->ban_list.end())
+		return (0);
+	if (this->is_channel_inside_only() && !(this->is_member(client_to_talk->get_fd())))
+		return (0);
+	if (this->is_channel_moderated() && (this->can_talk_list.find(client_to_talk->get_nickname()) == this->can_talk_list.end()))
+		return (0);
+
+	return (1);
 }

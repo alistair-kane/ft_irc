@@ -1,5 +1,6 @@
 #include "Server.hpp"
 
+/* INVITE <nick> <channel>*/
 void	Server::exec_cmd_INVITE(Message &cmd_msg)
 {
 	// get fd of requesting user
@@ -11,7 +12,7 @@ void	Server::exec_cmd_INVITE(Message &cmd_msg)
 	if (channel == channel_list.end()) // channel doesn't exist
 		return;
 
-	if (!(channel->second.is_member(request_fd))) // requesting user is not member of the channel.
+	if (!(channel->second.is_operator(request_fd))) // requesting user is not an operator of the channel.
 		return;
 
 	Client *to_invite = get_client_by_nick(nick);
@@ -31,6 +32,7 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 
 	// get the channel name from the argument
 	std::string	const &channel_name = cmd_msg.get_arg(0);
+	std::string key = cmd_msg.get_arg(1);
 
 	// Check if channel_name has correct syntax
 	if (!(channel_name[0] == '#' || channel_name[0] == '&'))
@@ -51,7 +53,7 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 
 	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
 
-	if (channel != channel_list.end() && !(channel->second.can_client_join(client_to_add)))
+	if (channel != channel_list.end() && !(channel->second.can_client_join(client_to_add, key)))
 			return;
 
 	// if channel doesn't exist create one with caller as operator/channel_owner
@@ -100,6 +102,7 @@ void	Server::exec_cmd_JOIN(Message &cmd_msg)
 	return ;
 }
 
+/* KICK <channel> <user> [<comment>] */
 void	Server::exec_cmd_KICK(Message &cmd_msg)
 {
 	// check if user is operator by iterating over operator list and check if msg fd is in that list
@@ -110,29 +113,26 @@ void	Server::exec_cmd_KICK(Message &cmd_msg)
 	std::string	const &channel_name = cmd_msg.get_arg(0);
 	std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
 
-	// get the list of operators of that channel
-	std::set<int> operator_list = channel->second.get_operator_list();
-	std::set<int>::iterator iter;
-	bool is_operator = false;
-   
-	// Loop over the operator_list
-	for (iter = operator_list.begin(); iter != operator_list.end(); iter++)
+	if (channel == channel_list.end()) // channel doesn't exist
+		return;
+
+	if (!(channel->second.is_operator(request_fd))) // requesting user is not an operator of the channel.
+		return;
+
+	std::string nick = cmd_msg.get_arg(1);
+	Client *target = this->get_client_by_nick(nick);
+	if (target == NULL)
+		return;
+
+	if (channel->second.is_member(target->get_fd()))
 	{
-		if (request_fd == *iter)
-		{
-			is_operator = true;
-		}
-	}
-
-	if (is_operator)
-	{
-		// find user to kick in member_list from msg_arg
-
-		// if user to kick is not in member_list then throw error user not found
-
-		// if user to kick is in member_list remove from member_list and create message that user was kicked
-	}
-
+		std::string msg = cmd_msg.get_arg(2);
+		if (msg.length() != 0)
+			msg = " :" + msg;
+		channel->second.remove_member(target->get_fd());
+		push_msg(request_fd, ":" + format_nick_user_host(get_client(request_fd)) + " KICK " + cmd_msg.get_arg(0) + " " + nick + msg);
+		push_msg(target->get_fd(), ":" + format_nick_user_host(get_client(request_fd)) + " KICK " + cmd_msg.get_arg(0) + " " + nick + msg);
+	}	
 	return ;
 }
 
@@ -143,7 +143,7 @@ void	Server::exec_cmd_LUSERS(Message &cmd_msg)
 	return ;
 }
 
-/* MODE <channel> {[+|-]|o|p|s|i|t|n|b|v} [<limit>] [<user>] [<ban mask>] */
+/* MODE <channel> {[+|-]|o|p|s|i|t|n|l|b|v|k} [<limit>] [<user>] [<ban mask>] */
 void Server::exec_cmd_CHANNEL_MODE(Message &cmd_msg, Channel *channel)
 {
 	std::string flags = cmd_msg.get_arg(1);
@@ -474,12 +474,12 @@ void	Server::exec_cmd_PONG(Message &cmd_msg)
 
 void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 {
-	std::string	arg = cmd_msg.get_arg(0);
+	std::string	target_name = cmd_msg.get_arg(0);
 	// std::string msg_from_arg = cmd_msg.get_arg(1);
 	std::string msg_from_arg;
 	bool		is_channel_msg = false;
 
-	if (arg[0] == '#' || arg[0] == '&')
+	if (target_name[0] == '#' || target_name[0] == '&')
 		is_channel_msg = true;
 
 	// go through every arg after 1 until empty is found
@@ -489,35 +489,27 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 
 	if (is_channel_msg)
 	{
-		std::string	const &channel_name = cmd_msg.get_arg(0);
-		std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
+		std::map<std::string, Channel>::iterator channel = channel_list.find(target_name);
 		if (channel == channel_list.end())
 		{
 			// throw error that channel doesn't exist
 			return ;
 		}
 		Client *sender_client = get_client(cmd_msg.get_fd());
-		push_multi_msg(channel->second, format_msg(sender_client, "PRIVMSG", channel_name, msg_from_arg), cmd_msg.get_fd());
+		if (sender_client != NULL && channel->second.can_client_talk(sender_client))
+			push_multi_msg(channel->second, format_msg(sender_client, "PRIVMSG", target_name, msg_from_arg), cmd_msg.get_fd());
 	}
 	else
 	{
 		std::cout << "Goes in here" << std::endl;
 		std::map<int, Client>::iterator	it;	
 		// search for user matching the nickname
-		for (it = client_list.begin(); it != client_list.end(); it++)
-		{
-			std::string	nick = it->second.get_nickname();
-			if (nick == arg)
-			{
-				std::cout << "Goes in here" << std::endl;
-				int receiver_fd = it->second.get_fd();
-				// Push message to the queue
-				// push_msg(it->first, ("433 " + nick + " " + arg + " :Nickname already taken"));
-				Client *sender_client = get_client(cmd_msg.get_fd());
-				push_msg(receiver_fd, format_msg(sender_client, "PRIVMSG", nick, msg_from_arg));
-				return ;
-			}
-		}
+		int receiver_fd = this->get_client_fd(target_name);
+		
+		// Push message to the queue
+		// push_msg(it->first, ("433 " + nick + " " + arg + " :Nickname already taken"));
+		Client *sender_client = get_client(cmd_msg.get_fd());
+		push_msg(receiver_fd, format_msg(sender_client, "PRIVMSG", target_name, msg_from_arg));
 	}
 	return ;
 }
