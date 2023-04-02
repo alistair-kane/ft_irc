@@ -43,6 +43,10 @@ class Client
 		std::vector<std::string>	&get_channel_list(void);
 		void						add_to_channel_list(std::string const &channel_name);
 		void						remove_from_channel_list(std::string const &channel_name);
+		bool						is_invisible(void) const;
+		void						set_invisible(bool yes);
+		bool						is_operator(void) const;
+		void						set_operator(bool yes);
 
 	private:
 		int			fd;
@@ -53,4 +57,6 @@ class Client
 		std::string	username;
 		std::string	message_buffer;
 		std::vector<std::string>	channel_list;
+		bool		invisible;
+		bool		server_operator;
 };

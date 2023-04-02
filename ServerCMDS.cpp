@@ -293,7 +293,31 @@ void Server::exec_cmd_CHANNEL_MODE(Message &cmd_msg, Channel *channel)
 /* MODE <nickname> {[+|-]|i|w|s|o}*/
 void Server::exec_cmd_USER_MODE(Message &cmd_msg, Client *client)
 {
-	// TODO?
+	std::string flags = cmd_msg.get_arg(1);
+	const int op_fd = cmd_msg.get_fd();
+	std::string nick = cmd_msg.get_arg(2);
+	if (flags.find('-') != std::string::npos && flags.find('+') != std::string::npos)
+		return; // Wrong format
+
+	if (flags.find('o') != std::string::npos) // give/take operator priviligies
+	{
+		if (flags.find('-') != std::string::npos)
+			client->set_operator(0);
+		else
+			client->set_operator(1);
+		push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags + " " + nick);
+		push_msg(client->get_fd(), ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags + " " + nick);
+	}
+
+	if (flags.find('i') != std::string::npos) // become invisible
+	{
+		if (flags.find('-') != std::string::npos)
+			client->set_invisible(0);
+		else
+			client->set_invisible(1);
+		push_msg(op_fd, ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags + " " + nick);
+		push_msg(client->get_fd(), ":" + format_nick_user_host(get_client(op_fd)) + " " + cmd_msg.get_cmd() + " " + cmd_msg.get_arg(0) + " " + flags + " " + nick);
+	}
 }
 
 void	Server::exec_cmd_MODE(Message &cmd_msg)
@@ -304,12 +328,13 @@ void	Server::exec_cmd_MODE(Message &cmd_msg)
 	if (target_name[0] == '#' || target_name[0] == '&')
 	{
 		std::map<std::string, Channel>::iterator channel = channel_list.find(target_name);
+		Client *client = get_client(fd);
 		if (channel == channel_list.end())
 		{
 			//throw error: No channel
 			return;
 		}
-		if (!is_operator(target_name, fd))
+		if (!(is_operator(target_name, fd) || client->is_operator()))
 		{
 			//throw error: Not operator
 			return;
@@ -323,6 +348,11 @@ void	Server::exec_cmd_MODE(Message &cmd_msg)
 		if (client == NULL)
 		{
 			//throw error: No client
+			return;
+		}
+		if (!client->is_operator())
+		{
+			//throw error: Not operator
 			return;
 		}
 		exec_cmd_USER_MODE(cmd_msg, client);
@@ -404,40 +434,39 @@ void	Server::exec_cmd_NICK(Message &cmd_msg)
 
 void	Server::exec_cmd_NOTICE(Message &cmd_msg)
 {
-	std::string	arg = cmd_msg.get_arg(0);
-	std::string msg_from_arg = cmd_msg.get_arg(1);
+	std::string	target_name = cmd_msg.get_arg(0);
+	// std::string msg_from_arg = cmd_msg.get_arg(1);
+	std::string msg_from_arg;
 	bool		is_channel_msg = false;
 
-	if (arg[0] == '#' || arg[0] == '&')
+	if (target_name[0] == '#' || target_name[0] == '&')
 		is_channel_msg = true;
+
+	// go through every arg after 1 until empty is found
+	std::vector<std::string> arg_vector = cmd_msg.get_arg_vector();
+	for (std::vector<std::string>::const_iterator i = arg_vector.begin() + 1; i != arg_vector.end(); i++)
+		msg_from_arg += *i;
 
 	if (is_channel_msg)
 	{
-		std::string	const &channel_name = cmd_msg.get_arg(0);
-		std::map<std::string, Channel>::iterator channel = channel_list.find(channel_name);
+		std::map<std::string, Channel>::iterator channel = channel_list.find(target_name);
 		if (channel == channel_list.end())
 		{
 			// throw error that channel doesn't exist
 			return ;
 		}
-		push_multi_msg(channel->second, msg_from_arg, -1);
+		Client *sender_client = get_client(cmd_msg.get_fd());
+		if (sender_client != NULL && channel->second.can_client_talk(sender_client))
+			push_multi_msg(channel->second, format_msg(sender_client, "NOTICE", target_name, msg_from_arg), cmd_msg.get_fd());
 	}
 	else
 	{
-		std::map<int, Client>::iterator	it;	
-		// search for user matching the nickname
-		for (it = client_list.begin(); it != client_list.end(); it++)
-		{
-			std::string	nick = it->second.get_nickname();
-			if (nick == arg)
-			{
-				int receiver_fd = it->second.get_fd();
-				// Push message to the queue
-				// push_msg(it->first, ("433 " + nick + " " + arg + " :Nickname already taken"));
-				push_msg(receiver_fd, msg_from_arg);
-				return ;
-			}
-		}
+		int receiver_fd = this->get_client_fd(target_name);
+		
+		// Push message to the queue
+		// push_msg(it->first, ("433 " + nick + " " + arg + " :Nickname already taken"));
+		Client *sender_client = get_client(cmd_msg.get_fd());
+		push_msg(receiver_fd, format_msg(sender_client, "NOTICE", target_name, msg_from_arg));
 	}
 	return ;
 }
@@ -501,9 +530,6 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 	}
 	else
 	{
-		std::cout << "Goes in here" << std::endl;
-		std::map<int, Client>::iterator	it;	
-		// search for user matching the nickname
 		int receiver_fd = this->get_client_fd(target_name);
 		
 		// Push message to the queue
@@ -525,6 +551,12 @@ void	Server::exec_cmd_TOPIC(Message &cmd_msg)
 		// throw error that channel doesn't exist
 		return ;
 	}
+
+	if (channel->second.is_channel_topic_settable() && !(channel->second.is_operator(cmd_msg.get_fd())))
+	{
+		// this user can't set topic on channel
+		return;
+	}
 	channel->second.set_channel_topic(channel_topic);
 }
 
@@ -532,4 +564,21 @@ void	Server::exec_cmd_USER(Message &cmd_msg)
 {
 	(void)cmd_msg;
 	//unsupported command!
+}
+
+void	Server::exec_cmd_QUIT(Message &cmd_msg)
+{
+	int	const & fd = cmd_msg.get_fd();
+	for (std::map<std::string, Channel>::iterator channel_it = this->channel_list.begin(); channel_it != this->channel_list.end(); channel_it++)
+	{
+		if (channel_it->second.is_member(fd))
+		{
+			channel_it->second.remove_member(fd);
+			push_multi_msg(channel_it->second, ":" + format_nick_user_host(get_client(fd)) + " " + cmd_msg.get_cmd(), cmd_msg.get_fd());
+		}
+	}
+	this->client_list.erase(fd);
+	this->host_ips.erase(fd);
+	this->reg_clients.erase(std::find(this->reg_clients.begin(), this->reg_clients.end(), fd));
+	close(fd);
 }

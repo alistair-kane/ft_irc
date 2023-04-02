@@ -3,16 +3,16 @@
 // Client::Client(void) :fd(-1), nickname(""), username("")
 // {}
 
-Client::Client(int const & fd) :fd(fd), nickname(""), username("") //, auth(false)
+Client::Client(int const & fd) :fd(fd), nickname(""), username(""), invisible(0), server_operator(0) //, auth(false)
 {}
 
-Client::Client(int const & fd, std::string const & nickname) :fd(fd), nickname(nickname), username("") //, auth(false)
+Client::Client(int const & fd, std::string const & nickname) :fd(fd), nickname(nickname), username(""), invisible(0), server_operator(0) //, auth(false)
 {}
 
-Client::Client(std::string const & nickname) :fd(-1), nickname(nickname), username(""), message_buffer("") //, auth(false)
+Client::Client(std::string const & nickname) :fd(-1), nickname(nickname), username(""), message_buffer(""), invisible(0), server_operator(0) //, auth(false)
 {}
 
-Client::Client(Client const & other) :fd(other.fd), nickname(other.nickname), username(other.username), message_buffer("") //, auth(false)
+Client::Client(Client const & other) :fd(other.fd), nickname(other.nickname), username(other.username), message_buffer(""), invisible(0), server_operator(0) //, auth(false)
 {}
 
 Client & Client::operator=(Client const &rhs)
@@ -131,4 +131,24 @@ void Client::add_to_channel_list(std::string const &channel_name)
 void	Client::remove_from_channel_list(std::string const &channel_name)
 {
 	this->channel_list.erase(std::remove(channel_list.begin(), channel_list.end(), channel_name), channel_list.end());
+}
+
+bool	Client::is_invisible(void) const
+{
+	return (this->invisible);
+}
+
+void	Client::set_invisible(bool yes)
+{
+	this->invisible = yes;
+}
+
+bool	Client::is_operator(void) const
+{
+	return (this->server_operator);
+}
+
+void	Client::set_operator(bool yes)
+{
+	this->server_operator = yes;
 }

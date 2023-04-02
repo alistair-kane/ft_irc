@@ -169,6 +169,7 @@ class Server
 		void	exec_cmd_PRIVMSG(Message &cmd_msg);
 		void	exec_cmd_TOPIC(Message &cmd_msg);
 		void	exec_cmd_USER(Message &cmd_msg);
+		void	exec_cmd_QUIT(Message &cmd_msg);
 
 		// ADMIN, AWAY, +BAN, +INVITE, +JOIN, +KICK, +KNOCK, +LINKS, +LIST, +LUSERS, MAP, +MODE, +MOTD, +NAMES, +NICK, +NOTICE,
 		// +PART, +PASS, +PING, +PONG, +PRIVMSG, QUIT, RULES, SETNAME, SILENCE, STATS, +USER, VERSION, WHO, WHOIS, WHOWAS
