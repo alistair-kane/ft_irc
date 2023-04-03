@@ -6,7 +6,7 @@ void	Server::bot_check(int fd, Message const &msg)
     // maybe make vector of random facts xd
     char const *ranf = "random alistair fact";
     char const *rtf = "random tim fact";
-    char const *ralf = "Alistair likes to eat peanut butter from the jar, like ice-cream"
+    char const *ralf = "Alistair likes to eat peanut butter from the jar, like ice-cream";
 
 	if (content.find("alistair") != std::string::npos)
     {
