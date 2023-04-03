@@ -83,7 +83,7 @@ class Server
 
 		struct sockaddr_in		_server_address;
 		int						_port;
-		std::string				_password = "test"; // could go in conf file later?
+		std::string				_password;
 		std::string				_hostname;
 
 		//place to store the clients

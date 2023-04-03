@@ -7,7 +7,7 @@ PASS=test
 NICK=irccat42
 SERVER=127.0.0.1
 PORT=4242
-CHAN="#test"
+CHAN="#el_testo"
 
 #  USER guest 0 * :Ronnie Reagan   ; User registering themselves with a
 #                                    username of "guest" and real name

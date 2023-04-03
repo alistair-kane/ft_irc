@@ -435,7 +435,6 @@ void	Server::exec_cmd_NICK(Message &cmd_msg)
 void	Server::exec_cmd_NOTICE(Message &cmd_msg)
 {
 	std::string	target_name = cmd_msg.get_arg(0);
-	// std::string msg_from_arg = cmd_msg.get_arg(1);
 	std::string msg_from_arg;
 	bool		is_channel_msg = false;
 
@@ -514,7 +513,10 @@ void	Server::exec_cmd_PRIVMSG(Message &cmd_msg)
 	// go through every arg after 1 until empty is found
 	std::vector<std::string> arg_vector = cmd_msg.get_arg_vector();
 	for (std::vector<std::string>::const_iterator i = arg_vector.begin() + 1; i != arg_vector.end(); i++)
+	{
 		msg_from_arg += *i;
+		msg_from_arg += " ";
+	}
 
 	if (is_channel_msg)
 	{

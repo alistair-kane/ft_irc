@@ -110,6 +110,8 @@ void    Server::start_server(void)
 								<< " hung up"
 								<< std::endl;
 							client_list.erase(sender_fd); // remove them from the client list
+							if (!(reg_clients.empty()))
+								reg_clients.erase(std::find(reg_clients.begin(), reg_clients.end(), sender_fd));
 						}
 						else
 						{

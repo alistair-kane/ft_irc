@@ -67,7 +67,7 @@ std::string const & Message::print_message(void) const
 				<< "raw: [" << this->_raw << "]\n"
 				<< "legit: [" << this->_legit << "]\n"
 				<< "args: [";
-	for (int i = 0; i < this->_args.size(); i++)
+	for (unsigned long i = 0; i < this->_args.size(); i++)
 		std::cout << this->_args[i] << "; ";
 	std::cout << std::endl;
 	//return (this->CMD + " " + this->sender + " " + this->receiver + " " + this->content + "\r\n")
