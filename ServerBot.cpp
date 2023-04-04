@@ -3,9 +3,8 @@
 void	Server::bot_check(int fd, Message const &msg)
 {
     std::string content = msg.raw_msg();
-    // maybe make vector of random facts xd
     char const *ranf = "Anna is afraid of dogs.";
-    char const *rtf = "random tim fact";
+    char const *rtf = "Tim likes to be creative with simple decor";
     char const *ralf = "Alistair likes to eat peanut butter from the jar, like ice-cream";
 
 	if (content.find("alistair") != std::string::npos)
